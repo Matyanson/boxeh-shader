@@ -150,7 +150,6 @@ void main(){
     // Do the lighting calculations
     vec3 light = getLight(Lightmap, NdotL, Depth);
     vec3 Diffuse = Color * light;
-    // Diffuse = vec3(1.0f) * pow((2* min(2*sunAngle, 1) - 1), 2);
     /* DRAWBUFFERS:0 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
