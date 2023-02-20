@@ -30,6 +30,10 @@ void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
 
     float depth = texture2D(depthtex0, TexCoords).r;
+    if(depth == 1.0f){
+        gl_FragData[0] = vec4(albedo, 1.0f);
+        return;
+    }
 
     float density = FOG_DENSITY + rainStrength * RAIN_MODIFIER;
 
@@ -40,9 +44,8 @@ void main() {
 
     float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.0f, 1.0f);
 
-    //if (depth < 0.99999f)
-        albedo = mix(albedo, lessContrast, contrastFactor);
+    albedo = mix(albedo, lessContrast, contrastFactor);
 
-
-    gl_FragColor = vec4(albedo, 1.0f);
+    /* DRAWBUFFERS:0 */
+    gl_FragData[0] = vec4(albedo, 1.0f);
 }
