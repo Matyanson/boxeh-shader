@@ -11,6 +11,7 @@ uniform vec3 sunPosition;
 uniform vec3 moonPosition;
 uniform float sunAngle;
 uniform int moonPhase;
+uniform float near, far;
 
 // The color textures which we wrote to
 uniform sampler2D colortex0;
@@ -78,6 +79,10 @@ vec3 getShadow(float depth){
     return ShadowAccum;
 }
 
+float LinearDepth(float z) {
+    return 1.0 / ((1 - far / near) * z + (far / near));
+}
+
 float AdjustLightmapTorch(in float torch) {
     /*
         default:    fx = 1 - x
@@ -115,12 +120,12 @@ vec3 GetLightmapColor(in vec2 Lightmap, float torchIntensity, float skyIntensity
     return LightmapLighting;
 }
 
-vec3 getLight(vec2 Lightmap, float NdotL, float Depth) {
+vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 noonColor = vec3(1.0f, 1.0f, 0.9f);    // slightly yellow
     vec3 sunsetColor = vec3(1.0f, 0.42f, 0.0f); //vec3(1.0f, 0.78f, 0.62f);    // orange - represented by rgb wavelength
     float sunDayAngle = pow(abs(4 * sunAngle - 2) - 1, 2);
     vec3 sunColor = mix(noonColor, sunsetColor, sunDayAngle);
-    vec3 RayColor = 1.5f * getShadow(Depth) * sunColor;
+    vec3 RayColor = 1.5f * getShadow(depth) * sunColor;
     float moonIntensity = (8  - moonPhase) / 8f * 0.12f;
 
     vec3 light = sunAngle > 0.5f ?
@@ -134,8 +139,8 @@ void main(){
     // Account for gamma correction
     vec3 Color = pow(texture2D(colortex0, TexCoords).rgb, vec3(2.2f));
     // ignore sky
-    float Depth = texture2D(depthtex0, TexCoords).r;
-    if(Depth == 1.0f){
+    float depth = texture2D(depthtex0, TexCoords).r;
+    if(depth == 1.0f){
         gl_FragData[0] = vec4(Color, 1.0f);
         return;
     }
@@ -148,9 +153,10 @@ void main(){
         max(dot(Normal, normalize(moonPosition)), 0.0f) :
         max(dot(Normal, normalize(sunPosition)), 0.0f);
     // Do the lighting calculations
-    vec3 light = getLight(Lightmap, NdotL, Depth);
+    vec3 light = getLight(Lightmap, NdotL, depth);
     vec3 Diffuse = Color * light;
-    /* DRAWBUFFERS:0 */
+    /* DRAWBUFFERS:03 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
+    gl_FragData[1] = vec4(LinearDepth(depth));
 }
