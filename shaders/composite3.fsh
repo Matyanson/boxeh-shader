@@ -27,7 +27,7 @@ void main() {
     // int weightSum = 0;
     // for(int i = -int(kernel / 2); i <= int(kernel / 2); i++) {
     //     float foreignKernelScale = texture2D(colortex4, TexCoords + vec2(i, 0.0)).r;
-    //     if(foreignKernelScale * kernel >= abs(i)) {
+    //     if(foreignKernelScale * kernel / 2 - 1 >= abs(i)) {
     //         accumulation += texture2D(colortex0, TexCoords + vec2(i, 0.0) * texelSize).rgb;
     //         weightSum++;
     //     }

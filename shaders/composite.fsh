@@ -5,6 +5,7 @@
 #define SHADOW_SAMPLES 1
 
 varying vec2 TexCoords;
+out vec3 sunColor;
 
 // Direction of the sun (not normalized!)
 uniform vec3 sunPosition;
@@ -124,7 +125,7 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 noonColor = vec3(1.0f, 1.0f, 0.9f);    // slightly yellow
     vec3 sunsetColor = vec3(1.0f, 0.42f, 0.0f); //vec3(1.0f, 0.78f, 0.62f);    // orange - represented by rgb wavelength
     float sunDayAngle = abs(4 * sunAngle - 2) - 1;
-    vec3 sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
+    sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
     vec3 RayColor = 1.5f * getShadow(depth) * sunColor;
     float moonIntensity = (8  - moonPhase) / 8f * 0.12f;
     float sunIntensity = 1;
@@ -144,6 +145,7 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 void main(){
     // Account for gamma correction
     vec3 Color = pow(texture2D(colortex0, TexCoords).rgb, vec3(2.2f));
+        sunColor = vec3(0.0);
     // ignore sky
     float depth = texture2D(depthtex0, TexCoords).r;
     if(depth == 1.0f){
