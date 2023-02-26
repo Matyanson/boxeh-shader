@@ -61,8 +61,13 @@ vec3 getShadow(float depth){
     vec3 View = ViewW.xyz / ViewW.w;
     vec4 World = gbufferModelViewInverse * vec4(View, 1.0f);
     vec4 ShadowSpace = shadowProjection * shadowModelView * World;
-    ShadowSpace.xy = DistortPosition(ShadowSpace.xy);
     vec3 SampleCoords = ShadowSpace.xyz * 0.5f + 0.5f;
+    // out of bounds fix
+    if(SampleCoords.z > 0.9999 || SampleCoords.x > 1 || SampleCoords.x < 0 || SampleCoords.y > 1 || SampleCoords.y < 0)
+        return vec3(1.0);
+    ShadowSpace.xy = DistortPosition(ShadowSpace.xy);
+    SampleCoords = ShadowSpace.xyz * 0.5f + 0.5f;
+
     // blur
     float RandomAngle = texture2D(noisetex, TexCoords * 20.0f).r * 100.0f;
     float cosTheta = cos(RandomAngle);
