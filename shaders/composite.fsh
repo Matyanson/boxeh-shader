@@ -33,6 +33,7 @@ uniform mat4 shadowProjection;
 const int colortex0Format = RGBA16F;
 const int colortex1Format = RGB16;
 const int colortex2Format = RGB16;
+const int colortex3Format = R32F;
 */
 
 const int ShadowSamplesPerSize = 1 * SHADOW_SAMPLES + 1;
@@ -153,6 +154,7 @@ void main(){
         sunColor = vec3(0.0);
     // ignore sky
     float depth = texture2D(depthtex0, TexCoords).r;
+    gl_FragData[1] = vec4(LinearDepth(depth));
     if(depth == 1.0f){
         gl_FragData[0] = vec4(Color, 1.0f);
         return;
@@ -171,5 +173,4 @@ void main(){
     /* DRAWBUFFERS:03 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
-    gl_FragData[1] = vec4(LinearDepth(depth));
 }

@@ -8,6 +8,7 @@ uniform float near, far;
 
 /*
 const int colortex0Format = RGBA32F;
+const int colortex4Format = R32F;
 */
 
 vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
@@ -59,11 +60,17 @@ float getFocalDistance() {
 
 void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
-    float depth = texture2D(colortex3, TexCoords).r;
+    float depth = texture2D(colortex3, TexCoords).r * 10000;//1000.0;
 
-    float focalDistance = getFocalDistance();
-    float focusDifference = depth - focalDistance;
-    float kernelScale = abs(focusDifference) / focalDistance;   // |depth - focalDistance| / focalDistance
+    float focalDistance = getFocalDistance() * 10000;//1000.0;
+    if(focalDistance < 9 || depth <= 9) {
+        gl_FragData[0] = vec4(vec3(0.01), 1.0f);
+        return;
+    }
+    float dist1 = 1.0 / (focalDistance - 1.0) + 1.0;
+    float dist2 = 1.0 / (depth - 1.0) + 1.0;
+    float focusDifference = dist2 - dist1;
+    float kernelScale = min(abs(focusDifference) / dist1, 1.0);   // |depth - focalDistance| / focalDistance
     
     /* DRAWBUFFERS:4 */
     gl_FragData[0] = vec4(vec3(kernelScale), 1.0f);
