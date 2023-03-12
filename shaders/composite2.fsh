@@ -60,18 +60,27 @@ float getFocalDistance() {
 
 void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
-    float depth = texture2D(colortex3, TexCoords).r * 10000;//1000.0;
+    float depth = texture2D(colortex3, TexCoords).r;
+    float focalDistance = getFocalDistance();
+    
+    // convert distance to blocks(m)
+    depth =         near + depth * (far - near);
+    focalDistance = near + focalDistance * (far - near);
 
-    float focalDistance = getFocalDistance() * 10000;//1000.0;
-    if(focalDistance < 9 || depth <= 9) {
+    if(depth < 0.17) {
         gl_FragData[0] = vec4(vec3(0.01), 1.0f);
         return;
     }
+
+    // eye focal length = 17mm = 0.017m, 1 / 0.017 = 58.82;
+    depth = depth * 58.82;
+    focalDistance = focalDistance * 58.82;
+    
     float dist1 = 1.0 / (focalDistance - 1.0) + 1.0;
     float dist2 = 1.0 / (depth - 1.0) + 1.0;
     float focusDifference = dist2 - dist1;
-    float kernelScale = min(abs(focusDifference) / dist1, 1.0);   // |depth - focalDistance| / focalDistance
+    float kernelScale = min(abs(focusDifference) / dist1, 1);   // |depth - focalDistance| / focalDistance
     
     /* DRAWBUFFERS:4 */
-    gl_FragData[0] = vec4(vec3(kernelScale), 1.0f);
+    gl_FragData[0] = vec4(vec3(kernelScale), 1f);
 }
