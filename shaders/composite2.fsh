@@ -2,85 +2,58 @@
 
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
-uniform sampler2D colortex3;
+
 uniform float viewWidth, viewHeight;
+uniform vec3 sunPosition;
 uniform float near, far;
+uniform mat4 gbufferProjection;
 
 /*
 const int colortex0Format = RGBA32F;
-const int colortex4Format = R32F;
 */
 
-vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
-float samples[9] = float[](1, 1, 1, 1, 1, 1, 1, 1, 1);
+#define NUM_SAMPLES 70
 
-void insert(float a, int position) {
-    samples[position] = a;
-    int i = position;
-
-    while(i > 0 && samples[i] < samples[i - 1]) {
-        // swap
-        float temp = samples[i - 1];
-        samples[i - 1] = samples[i];
-        samples[i] = temp;
-
-        i--;
-    }
-}
-
-float getFocalDistance() {
-
-    insert(texture2D(colortex3, vec2(0.5f, 0.5f)).r, 0);
-    insert(texture2D(colortex3, vec2(0.515f, 0.5f)).r, 1);
-    insert(texture2D(colortex3, vec2(0.5f, 0.515f)).r, 2);
-    insert(texture2D(colortex3, vec2(0.485f, 0.5f)).r, 3);
-    insert(texture2D(colortex3, vec2(0.5f, 0.485f)).r, 4);
-    insert(texture2D(colortex3, vec2(0.515f, 0.515f)).r, 5);
-    insert(texture2D(colortex3, vec2(0.485f, 0.485f)).r, 6);
-    insert(texture2D(colortex3, vec2(0.485f, 0.515f)).r, 7);
-    insert(texture2D(colortex3, vec2(0.515f, 0.485f)).r, 8);
-
-    return samples[5];
-
-    // float sum = 0.0f;
-    // int radius = 7;
-    // float spacing = 2 * texelSize.x;
-    // float radiusTex = radius * spacing;
-    // for(float x = 0.5 - radiusTex; x <= 0.5 + radiusTex; x += spacing) {
-    //     sum += texture2D(colortex3, vec2(x, 0.5f).r);
-    // }
-    // spacing = 2 * texelSize.y;
-    // radiusTex = radius * spacing;
-    // for(float y = 0.5 - radiusTex; y <= 0.5 + radiusTex; y += spacing) {
-    //     sum += texture2D(colortex3, vec2(0.5f, y).r);
-    // }
-
-    // return sum / (4 * radius + 2);  // TODO: use median instead of average
+float luminance(vec3 color) {
+    return dot(color, vec3(0.2125f, 0.7153f, 0.0721f));
 }
 
 void main() {
-    vec3 albedo = texture2D(colortex0, TexCoords).rgb;
-    float depth = texture2D(colortex3, TexCoords).r;
-    float focalDistance = getFocalDistance();
-    
-    // convert distance to blocks(m)
-    depth =         near + depth * (far - near);
-    focalDistance = near + focalDistance * (far - near);
+   vec3 albedo = texture2D(colortex0, TexCoords).rgb;
+   vec4 tpos = vec4(sunPosition, 1.0) * gbufferProjection;
+   tpos = tpos / tpos.w;
+   vec2 center = tpos.xy / tpos.z * 0.5 + 0.5;
+   if(sunPosition.z > 0) {
+      gl_FragColor = vec4(albedo, 1.0f);
+      return;
+   }
 
-    if(depth < 0.17) {
-        gl_FragData[0] = vec4(vec3(0.01), 1.0f);
-        return;
-    }
+	float blurStart = 0.05;
+   float blurWidth = 1;
 
-    // eye focal length = 17mm = 0.017m, 1 / 0.017 = 58.82;
-    depth = depth * 58.82;
-    focalDistance = focalDistance * 58.82;
     
-    float dist1 = 1.0 / (focalDistance - 1.0) + 1.0;
-    float dist2 = 1.0 / (depth - 1.0) + 1.0;
-    float focusDifference = dist2 - dist1;
-    float kernelScale = min(abs(focusDifference) / dist1, 1);   // |depth - focalDistance| / focalDistance
+	vec2 uv = TexCoords;
     
-    /* DRAWBUFFERS:4 */
-    gl_FragData[0] = vec4(vec3(kernelScale), 1f);
+   uv -= center;
+   float precompute = blurWidth / float(NUM_SAMPLES - 1);
+   
+   vec3 color = vec3(0.0);
+   // float dist = sqrt(pow(TexCoords.x - center.x, 2) + pow(TexCoords.y - center.y, 2));
+   for(int i = 0; i < NUM_SAMPLES; i++)
+   {
+      float scale = blurStart + (float(i) * precompute);
+      vec2 coords = uv * scale  + center;
+      vec3 samCol = texture2D(colortex0, coords).rgb;
+      float lum = pow(max(luminance(samCol) - 0.6, 0), 2);
+      color += samCol * lum;// * (1-(dist));
+   }
+
+   color /= float(NUM_SAMPLES);
+
+   color = vec3(pow(color.r, 1.2), pow(color.g, 1.2), pow(color.b, 1.2));
+   color *= 0.015;
+   albedo += color;
+
+   /* DRAWBUFFERS:0 */
+   gl_FragColor = vec4(albedo, 1.0f);
 }

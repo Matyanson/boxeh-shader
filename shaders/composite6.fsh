@@ -3,6 +3,7 @@
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
 uniform sampler2D colortex4;
+uniform sampler2D colortex5;
 uniform float viewWidth, viewHeight;
 
 /*
@@ -19,17 +20,18 @@ void main() {
     float temp = kernelScale * kernel / 2.0;
     int kernelRadius = int(temp);
     float partialKernel = mod(temp, 1.0);
-    // Horizontal Blur
+    // Vertical Blur
     vec3 sum = vec3(0);
     vec3 accumulation = vec3(0);
     for (int i = -kernelRadius; i <= kernelRadius; i++){
-        accumulation += texture2D(colortex0, TexCoords + vec2(i, 0.0) * texelSize).rgb;
+        accumulation += texture2D(colortex5, TexCoords + vec2(0.0, i) * texelSize).rgb;
     }
 
-    accumulation += partialKernel * texture2D(colortex0, TexCoords + vec2(kernelRadius + 1, 0.0) * texelSize).rgb;
+    accumulation += partialKernel * texture2D(colortex0, TexCoords + vec2(0.0, kernelRadius + 1) * texelSize).rgb;
 
     sum = accumulation / (2 * kernelRadius + 1 + partialKernel);
 
-    /* DRAWBUFFERS:5 */
+    /* DRAWBUFFERS:0 */
     gl_FragColor = vec4(sum, 1.0f);
+    // gl_FragColor = vec4(vec3(kernelScale), 1.0f);
 }
