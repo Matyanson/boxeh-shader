@@ -5,6 +5,8 @@ uniform sampler2D colortex0;
 
 uniform float viewWidth, viewHeight;
 uniform vec3 sunPosition;
+uniform vec3 moonPosition;
+uniform float sunAngle;
 uniform float near, far;
 uniform mat4 gbufferProjection;
 
@@ -20,10 +22,18 @@ float luminance(vec3 color) {
 
 void main() {
    vec3 albedo = texture2D(colortex0, TexCoords).rgb;
-   vec4 tpos = vec4(sunPosition, 1.0) * gbufferProjection;
+   vec3 skyObjectPos = sunPosition;
+   float FILTER = 0.015;
+   float LUM_POW = 2;
+   if(sunAngle > 0.5f){
+      skyObjectPos = moonPosition;
+      FILTER = 0.15;
+      LUM_POW = 1;
+   }
+   vec4 tpos = vec4(skyObjectPos, 1.0) * gbufferProjection;
    tpos = tpos / tpos.w;
    vec2 center = tpos.xy / tpos.z * 0.5 + 0.5;
-   if(sunPosition.z > 0) {
+   if(skyObjectPos.z > 0) {
       gl_FragColor = vec4(albedo, 1.0f);
       return;
    }
@@ -44,14 +54,14 @@ void main() {
       float scale = blurStart + (float(i) * precompute);
       vec2 coords = uv * scale  + center;
       vec3 samCol = texture2D(colortex0, coords).rgb;
-      float lum = pow(max(luminance(samCol) - 0.6, 0), 2);
+      float lum = pow(max(luminance(samCol) - 0.6, 0), LUM_POW);
       color += samCol * lum;// * (1-(dist));
    }
 
    color /= float(NUM_SAMPLES);
 
    color = vec3(pow(color.r, 1.2), pow(color.g, 1.2), pow(color.b, 1.2));
-   color *= 0.015;
+   color *= FILTER;
    albedo += color;
 
    /* DRAWBUFFERS:0 */
