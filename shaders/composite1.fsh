@@ -11,6 +11,8 @@ uniform vec3 fogColor;
 
 uniform float near, far;
 uniform float rainStrength;
+uniform int isEyeInWater;
+
 
 /*
 const int colortex0Format = RGBA32F;
@@ -21,6 +23,16 @@ float FogExp2(float viewDistance, float density) {
     return exp2(-factor * factor);
 }
 
+vec3 getWaterColor(vec3 originalColor, float waterDepth) {
+   float viewDistance = waterDepth * far - near;
+   float shallow = FogExp2(viewDistance, 0.3);
+   float deep = FogExp2(viewDistance, 0.1);
+   vec3 shallowColor = vec3(0, 0.5, 0.95);
+   vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
+   shallowColor = originalColor * mix(shallowColor, vec3(1), shallow);
+   return mix(deepColor, shallowColor, deep);
+}
+
 const float contrast = 1.25f;
 const float brightness = 0.25f;
 
@@ -28,10 +40,19 @@ void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
 
     float depth = texture2D(colortex3, TexCoords).r;
+
+    if(isEyeInWater == 1) {
+        albedo = getWaterColor(albedo, depth);
+        gl_FragData[0] = vec4(albedo, 1.0f);
+        return;
+    }
+    
     if(depth == 1.0f){
         gl_FragData[0] = vec4(albedo, 1.0f);
         return;
     }
+
+    
 
     float density = FOG_DENSITY + rainStrength * RAIN_MODIFIER;
 
