@@ -9,6 +9,7 @@ uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform vec3 skyColor;
 uniform float near, far;
+uniform int isEyeInWater;
 
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferProjection;
@@ -44,8 +45,8 @@ vec3 viewToScreen(vec3 viewPos) {
 }
 
 float distFromScreen(vec2 point) {
-   float dx = max(0 -point.x, point.x - 1); //-0.5
-   float dy = max(0 -point.y, point.y - 1); //0.1
+   float dx = max(0 -point.x, point.x - 1);
+   float dy = max(0 - point.y, point.y - 1);
    return max(dx, dy);
 }
 
@@ -102,11 +103,13 @@ void main() {
    refractPos = vec3(TexCoords, 0);
    vec3 refractionColor = texture2D(colortex0, refractPos.xy).rgb;
    vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
+   float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex6, TexCoords).g;
+   float distFromScreen = 0.2 + distFromScreen(ref.xy);
    float edgeTransiton = 0;
-   float distFromScreen = 0.5 + distFromScreen(ref.xy);
+   
    if(distFromScreen > 0)
-      edgeTransiton = clamp(pow(distFromScreen, 2) * 3, 0, 1);
-   reflectionColor = mix(reflectionColor, color, edgeTransiton);
+      edgeTransiton = clamp(distFromScreen * 4, 0, 1);
+   reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton) * lightAlbedo);
    
    color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
    /* DRAWBUFFERS:0 */

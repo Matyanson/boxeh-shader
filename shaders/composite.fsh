@@ -18,6 +18,7 @@ uniform float near, far;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
+uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
@@ -45,7 +46,7 @@ const int noiseTextureResolution = 128;
 const float Ambient = 0.025f;
 
 float Visibility(in sampler2D ShadowMap, in vec3 SampleCoords) {
-    return step(SampleCoords.z - 0.0001f, texture2D(ShadowMap, SampleCoords.xy).r);
+    return step(SampleCoords.z - 0.0004f, texture2D(ShadowMap, SampleCoords.xy).r);
 }
 
 vec3 TransparentShadow(in vec3 SampleCoords){
@@ -132,7 +133,8 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 sunsetColor = vec3(1.0f, 0.42f, 0.0f); //vec3(1.0f, 0.78f, 0.62f);    // orange - represented by rgb wavelength
     float sunDayAngle = abs(4 * sunAngle - 2) - 1;
     sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
-    vec3 RayColor = 1.5f * getShadow(depth) * sunColor;
+    vec3 shadow = getShadow(depth);
+    vec3 RayColor = 1.5f * shadow * sunColor;
     float moonIntensity = (8  - moonPhase) / 8f * 0.12f;
     float sunIntensity = 1;
     if(abs(sunDayAngle) > 0.75) {
@@ -144,6 +146,7 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 light = sunAngle < 0.5f ?
         NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, sunIntensity * 0.1) :
         moonIntensity * NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, moonIntensity * 0.1);
+    
     //return RayColor;
     return scaleMaxTreshold(light, 1.15);
 }
@@ -170,7 +173,9 @@ void main(){
     // Do the lighting calculations
     vec3 light = getLight(Lightmap, NdotL, depth);
     vec3 Diffuse = Color * light;
-    /* DRAWBUFFERS:03 */
+    /* DRAWBUFFERS:036 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
+    // store light albedo to colortex6
+    gl_FragData[2] = vec4(texture2D(colortex6, TexCoords).r, light.r, 0, 1);
 }
