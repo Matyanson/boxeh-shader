@@ -14,7 +14,7 @@ uniform mat4 gbufferProjection;
 const int colortex0Format = RGBA32F;
 */
 
-#define NUM_SAMPLES 70
+#define NUM_SAMPLES 100
 
 float luminance(vec3 color) {
     return dot(color, vec3(0.2125f, 0.7153f, 0.0721f));

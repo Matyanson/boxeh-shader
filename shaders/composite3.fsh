@@ -49,6 +49,10 @@ float distFromScreen(vec2 point) {
    return max(dx, dy);
 }
 
+float luminance(vec3 color) {
+    return dot(color, vec3(0.2125f, 0.7153f, 0.0721f));
+}
+
 void main() {
    vec3 color = texture2D(colortex0, TexCoords).rgb;
    float isWater = texture2D(colortex6, TexCoords).r;
@@ -63,7 +67,6 @@ void main() {
    vec3 fragPos = vec3(TexCoords, depth);
    vec3 fragPosView = toView(fragPos);
    fragPos = fragPos * 2 - 1;
-   normal = normalize(mat3(gbufferModelView) * normal);
    vec3 projection = dot(fragPosView, normal) * normal;
    vec3 horizon = normalize(fragPosView - projection);
    horizon *= (far + 16);
@@ -73,11 +76,12 @@ void main() {
 
    vec3 ref = reflect(fragPosView, normalize(horizon));
    float angle = dot(normalize(ref), vec3(0, 0, 1));
-   if(angle < 0) {
+   ref = viewToScreen(ref);
+   float refDepth = texture2D(depthtex0, ref.xy).r;
+   if(angle < 0 || refDepth < depth) {
       gl_FragColor = vec4(color, 1.0);
       return;
    }
-   ref = viewToScreen(ref);
    vec3 refractPos = refract(normalize(fragPosView), normal, 1.333);
    refractPos = viewToScreen(refractPos);
 
