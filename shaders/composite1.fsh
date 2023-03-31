@@ -5,6 +5,7 @@
 
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D colortex3;
 uniform vec3 skyColor;
 uniform vec3 fogColor;
@@ -28,13 +29,14 @@ float toMeters(float depth) {
 }
 
 vec3 getWaterColor(vec3 originalColor, float waterDepth) {
+   float lightAlbedo = texture2D(colortex1, TexCoords).b;
    waterDepth = toMeters(waterDepth);
    float viewDistance = waterDepth * far - near;
    float shallow = FogExp2(viewDistance, 0.002);
    float deep = FogExp2(viewDistance, 0.0008);
    vec3 shallowColor = vec3(0, 0.5, 0.95);
    vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
-   shallowColor = originalColor * mix(shallowColor, vec3(1), shallow);
+   shallowColor = originalColor * mix(shallowColor, vec3(lightAlbedo), shallow);
    return mix(deepColor, shallowColor, deep);
 }
 
@@ -47,12 +49,13 @@ void main() {
     float depth = texture2D(colortex3, TexCoords).r;
 
     if(isEyeInWater == 1) {
-        color = getWaterColor(color, depth);
+        
+        color = getWaterColor(color, depth * 0.5);
         gl_FragData[0] = vec4(color, 1.0f);
         return;
     }
 
-    if(depth == 1.0f){
+    if(depth == 1.0f) {
         gl_FragData[0] = vec4(color, 1.0f);
         return;
     }

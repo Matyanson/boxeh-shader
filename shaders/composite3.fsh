@@ -1,8 +1,8 @@
 #version 120
 
 varying vec2 TexCoords;
-varying float isWater;
 uniform sampler2D colortex0;
+uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex6;
@@ -41,18 +41,18 @@ vec3 viewToScreen(vec3 viewPos) {
 }
 
 float distFromScreen(vec2 point) {
-   // float dx = max(0 -point.x, point.x - 1);
+   float dx = max(0 -point.x, point.x - 1);
    float dy = max(0 - point.y, point.y - 1);
-   return dy;//max(dx, dy);
+   return max(dx, dy);
 }
 
 float LinearDepth(float z) {
-    return 1.0 / ((1 - far / near) * z + (far / near));
+   return 1.0 / ((1 - far / near) * z + (far / near));
 }
 
 float FogExp2(float viewDistance, float density) {
-    float factor = viewDistance * (density / sqrt(log(2.0f)));
-    return exp2(-factor * factor);
+   float factor = viewDistance * (density / sqrt(log(2.0f)));
+   return exp2(-factor * factor);
 }
 
 
@@ -66,28 +66,29 @@ float toMeters(float depth) {
 }
 
 vec3 getWaterColor(vec3 originalColor, float waterDepth) {
+   float lightAlbedo = texture2D(colortex1, TexCoords).b;
    waterDepth = toMeters(waterDepth);
    float viewDistance = waterDepth * far - near;
    float shallow = FogExp2(viewDistance, 0.002);
    float deep = FogExp2(viewDistance, 0.0008);
    vec3 shallowColor = vec3(0, 0.5, 0.95);
    vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
-   shallowColor = originalColor * mix(shallowColor, vec3(1), shallow);
+   shallowColor = originalColor * mix(shallowColor, vec3(lightAlbedo), shallow);
    return mix(deepColor, shallowColor, deep);
 }
 
 
 void main() {
    vec3 color = texture2D(colortex0, TexCoords).rgb;
-   float isWater = texture2D(colortex6, TexCoords).r;
+   float isReflective = texture2D(colortex6, TexCoords).g;
    float depth = texture2D(depthtex0, TexCoords).r;
 
-   if(isWater < 0.9) {
+   if(isReflective < 0.9) {
       gl_FragColor = vec4(color, 1.0);
       return;
    }
    
-   
+   float blockId = texture2D(colortex6, TexCoords).r;
    vec3 normal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
    vec3 fragPos = vec3(TexCoords, depth);
    vec3 fragPosView = toView(fragPos);
@@ -98,6 +99,7 @@ void main() {
    horizon = horizon + projection;
 
 
+   float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
    vec3 refractionColor = isEyeInWater == 1 ? color : getWaterColor(color, depthWater);
@@ -108,6 +110,8 @@ void main() {
    ref = viewToScreen(ref);
    float refDepth = texture2D(depthtex0, ref.xy).r;
 
+   if(floor(blockId + 0.5) != 9)
+      refractionColor = color;
 
    if(angle < 0 || refDepth < depth) {
       gl_FragColor = vec4(refractionColor, 1.0);
@@ -129,13 +133,12 @@ void main() {
 
    float fresnel = clamp(dot(-normalize(fragPosView), normal), 0, 1);
    vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
-   float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex6, TexCoords).g;
    float distFromScreen = 0.2 + distFromScreen(ref.xy);
    float edgeTransiton = 0;
    
    if(distFromScreen > 0)
       edgeTransiton = clamp(distFromScreen * 4, 0, 1);
-   reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton) * lightAlbedo);
+   reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton));
    
    color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
    // color = refractionColor;

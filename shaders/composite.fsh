@@ -18,7 +18,6 @@ uniform float near, far;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
-uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
@@ -173,9 +172,9 @@ void main(){
     // Do the lighting calculations
     vec3 light = getLight(Lightmap, NdotL, depth);
     vec3 Diffuse = Color * light;
-    /* DRAWBUFFERS:036 */
+    /* DRAWBUFFERS:031 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
-    // store light albedo to colortex6
-    gl_FragData[2] = vec4(texture2D(colortex6, TexCoords).r, light.r, 0, 1);
+    // store light albedo to colortex1
+    gl_FragData[2] = vec4(texture2D(colortex1, TexCoords).rg, light.r, 1);
 }

@@ -4,6 +4,9 @@ varying vec2 TexCoords;
 varying vec4 Color;
 varying vec2 LightmapCoords;
 varying vec3 Normal;
+flat varying int BlockId;
+
+attribute vec4 mc_Entity;
 
 void main() {
     gl_Position = ftransform();
@@ -15,4 +18,5 @@ void main() {
     // Transform them into the [0, 1] range
     LightmapCoords = (LightmapCoords * 33.05f / 32.0f) - (1.05f / 32.0f);
     Normal = normalize(gl_NormalMatrix * gl_Normal);
+    BlockId = int(mc_Entity.x);
 }

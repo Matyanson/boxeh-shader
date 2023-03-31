@@ -29,17 +29,17 @@ void insert(float a, int position) {
     }
 }
 
-float getFocalDistance() {
+float getFocalDistance(sampler2D tex) {
 
-    insert(texture2D(colortex3, vec2(0.5f, 0.5f)).r, 0);
-    insert(texture2D(colortex3, vec2(0.515f, 0.5f)).r, 1);
-    insert(texture2D(colortex3, vec2(0.5f, 0.515f)).r, 2);
-    insert(texture2D(colortex3, vec2(0.485f, 0.5f)).r, 3);
-    insert(texture2D(colortex3, vec2(0.5f, 0.485f)).r, 4);
-    insert(texture2D(colortex3, vec2(0.515f, 0.515f)).r, 5);
-    insert(texture2D(colortex3, vec2(0.485f, 0.485f)).r, 6);
-    insert(texture2D(colortex3, vec2(0.485f, 0.515f)).r, 7);
-    insert(texture2D(colortex3, vec2(0.515f, 0.485f)).r, 8);
+    insert(texture2D(tex, vec2(0.5f, 0.5f)).r, 0);
+    insert(texture2D(tex, vec2(0.515f, 0.5f)).r, 1);
+    insert(texture2D(tex, vec2(0.5f, 0.515f)).r, 2);
+    insert(texture2D(tex, vec2(0.485f, 0.5f)).r, 3);
+    insert(texture2D(tex, vec2(0.5f, 0.485f)).r, 4);
+    insert(texture2D(tex, vec2(0.515f, 0.515f)).r, 5);
+    insert(texture2D(tex, vec2(0.485f, 0.485f)).r, 6);
+    insert(texture2D(tex, vec2(0.485f, 0.515f)).r, 7);
+    insert(texture2D(tex, vec2(0.515f, 0.485f)).r, 8);
 
     return samples[5];
 
@@ -65,9 +65,9 @@ float LinearDepth(float z) {
 
 void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
-    float itemlessDepth = texture2D(depthtex2, TexCoords).r;
+    float itemlessDepth = getFocalDistance(depthtex2);
     float depth = texture2D(colortex3, TexCoords).r;
-    float focalDistance = getFocalDistance();
+    float focalDistance = getFocalDistance(colortex3);
     focalDistance = max(focalDistance, LinearDepth(itemlessDepth));
     
     // convert distance to blocks(m)
