@@ -3,6 +3,7 @@
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
 uniform sampler2D colortex3;
+uniform sampler2D depthtex2;
 uniform float viewWidth, viewHeight;
 uniform float near, far;
 
@@ -58,10 +59,16 @@ float getFocalDistance() {
     // return sum / (4 * radius + 2);  // TODO: use median instead of average
 }
 
+float LinearDepth(float z) {
+    return 1.0 / ((1 - far / near) * z + (far / near));
+}
+
 void main() {
     vec3 albedo = texture2D(colortex0, TexCoords).rgb;
+    float itemlessDepth = texture2D(depthtex2, TexCoords).r;
     float depth = texture2D(colortex3, TexCoords).r;
     float focalDistance = getFocalDistance();
+    focalDistance = max(focalDistance, LinearDepth(itemlessDepth));
     
     // convert distance to blocks(m)
     depth =         near + depth * (far - near);
@@ -71,6 +78,9 @@ void main() {
         gl_FragData[0] = vec4(vec3(0.01), 1.0f);
         return;
     }
+
+    // don't focus too close (on items in hand)
+    // depth = max(depth, 1);
 
     // eye focal length = 17mm = 0.017m, 1 / 0.017 = 58.82;
     depth = depth * 58.82;

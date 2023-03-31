@@ -23,10 +23,15 @@ float FogExp2(float viewDistance, float density) {
     return exp2(-factor * factor);
 }
 
+float toMeters(float depth) {
+   return near + depth * (far - near);
+}
+
 vec3 getWaterColor(vec3 originalColor, float waterDepth) {
+   waterDepth = toMeters(waterDepth);
    float viewDistance = waterDepth * far - near;
-   float shallow = FogExp2(viewDistance, 0.3);
-   float deep = FogExp2(viewDistance, 0.1);
+   float shallow = FogExp2(viewDistance, 0.002);
+   float deep = FogExp2(viewDistance, 0.0008);
    vec3 shallowColor = vec3(0, 0.5, 0.95);
    vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
    shallowColor = originalColor * mix(shallowColor, vec3(1), shallow);
@@ -37,18 +42,18 @@ const float contrast = 1.25f;
 const float brightness = 0.25f;
 
 void main() {
-    vec3 albedo = texture2D(colortex0, TexCoords).rgb;
+    vec3 color = texture2D(colortex0, TexCoords).rgb;
 
     float depth = texture2D(colortex3, TexCoords).r;
 
     if(isEyeInWater == 1) {
-        albedo = getWaterColor(albedo, depth);
-        gl_FragData[0] = vec4(albedo, 1.0f);
+        color = getWaterColor(color, depth);
+        gl_FragData[0] = vec4(color, 1.0f);
         return;
     }
-    
+
     if(depth == 1.0f){
-        gl_FragData[0] = vec4(albedo, 1.0f);
+        gl_FragData[0] = vec4(color, 1.0f);
         return;
     }
 
@@ -58,12 +63,12 @@ void main() {
 
     float viewDistance = depth * far - near;
     
-    vec3 lessContrast = contrast * 0.33 * (albedo - 0.5) + 0.5 + brightness;
+    vec3 lessContrast = contrast * 0.33 * (color - 0.5) + 0.5 + brightness;
 
     float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.5f, 1.0f);
 
-    albedo = mix(albedo, fogColor, contrastFactor);
+    color = mix(color, fogColor, contrastFactor);
 
     /* DRAWBUFFERS:0 */
-    gl_FragData[0] = vec4(albedo, 1.0f);
+    gl_FragData[0] = vec4(color, 1.0f);
 }

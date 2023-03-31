@@ -55,10 +55,21 @@ float FogExp2(float viewDistance, float density) {
     return exp2(-factor * factor);
 }
 
+
+
+vec3 screenBlend(vec3 base, vec3 blend) {
+   return vec3(1) - ((vec3(1)-base) * (vec3(1)-blend));
+}
+
+float toMeters(float depth) {
+   return near + depth * (far - near);
+}
+
 vec3 getWaterColor(vec3 originalColor, float waterDepth) {
+   waterDepth = toMeters(waterDepth);
    float viewDistance = waterDepth * far - near;
-   float shallow = FogExp2(viewDistance, 0.3);
-   float deep = FogExp2(viewDistance, 0.1);
+   float shallow = FogExp2(viewDistance, 0.002);
+   float deep = FogExp2(viewDistance, 0.0008);
    vec3 shallowColor = vec3(0, 0.5, 0.95);
    vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
    shallowColor = originalColor * mix(shallowColor, vec3(1), shallow);
@@ -89,8 +100,8 @@ void main() {
 
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-   vec3 refractionColor = getWaterColor(color, depthWater);
-   
+   vec3 refractionColor = isEyeInWater == 1 ? color : getWaterColor(color, depthWater);
+   // vec3 refractionColor = color;
 
    vec3 ref = reflect(fragPosView, normalize(horizon));
    float angle = dot(normalize(ref), vec3(0, 0, 1));
