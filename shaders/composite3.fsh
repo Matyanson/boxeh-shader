@@ -66,15 +66,15 @@ float toMeters(float depth) {
 }
 
 vec3 getWaterColor(vec3 originalColor, float waterDepth) {
-   float lightAlbedo = texture2D(colortex1, TexCoords).b;
+   vec3 result = originalColor;
    waterDepth = toMeters(waterDepth);
    float viewDistance = waterDepth * far - near;
-   float shallow = FogExp2(viewDistance, 0.002);
-   float deep = FogExp2(viewDistance, 0.0008);
-   vec3 shallowColor = vec3(0, 0.5, 0.95);
-   vec3 deepColor = 0.05 * vec3(0, 0.05, 0.2);
-   shallowColor = originalColor * mix(shallowColor, vec3(lightAlbedo), shallow);
-   return mix(deepColor, shallowColor, deep);
+   float red = FogExp2(viewDistance, 1 * 0.001);
+   float green = FogExp2(viewDistance, 1 * 0.0003);
+   float blue = FogExp2(viewDistance, 1 * 0.0002);
+   // vec3 shallowColor = vec3(0, 0.5, 0.95);
+   result *= vec3(red, green, blue);
+   return result;
 }
 
 
