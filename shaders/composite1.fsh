@@ -20,7 +20,7 @@ const int colortex0Format = RGBA32F;
 */
 
 float FogExp2(float viewDistance, float density) {
-    float factor = viewDistance * (density / sqrt(log(2.0f)));
+    float factor = viewDistance * (density / sqrt(log(2.0)));
     return exp2(-factor * factor);
 }
 
@@ -40,8 +40,8 @@ vec3 getWaterColor(vec3 originalColor, float waterDepth) {
    return result;
 }
 
-const float contrast = 1.25f;
-const float brightness = 0.25f;
+const float contrast = 1.25;
+const float brightness = 0.25;
 
 void main() {
     vec3 color = texture2D(colortex0, TexCoords).rgb;
@@ -51,12 +51,12 @@ void main() {
     if(isEyeInWater == 1) {
         
         color = getWaterColor(color, depth * 0.5);
-        gl_FragData[0] = vec4(color, 1.0f);
+        gl_FragData[0] = vec4(color, 1.0);
         return;
     }
 
-    if(depth == 1.0f) {
-        gl_FragData[0] = vec4(color, 1.0f);
+    if(depth == 1.0) {
+        gl_FragData[0] = vec4(color, 1.0);
         return;
     }
 
@@ -68,10 +68,10 @@ void main() {
     
     vec3 lessContrast = contrast * 0.33 * (color - 0.5) + 0.5 + brightness;
 
-    float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.5f, 1.0f);
+    float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.5, 1.0);
 
     color = mix(color, fogColor, contrastFactor);
 
     /* DRAWBUFFERS:0 */
-    gl_FragData[0] = vec4(color, 1.0f);
+    gl_FragData[0] = vec4(color, 1.0);
 }

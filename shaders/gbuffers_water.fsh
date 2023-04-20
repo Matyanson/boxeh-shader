@@ -18,7 +18,7 @@ void main() {
     /* DRAWBUFFERS:0126 */
     // gl_FragData[0] = vec4(albedo.rgb, 1) * vec4(Color.rgb, 0.5);
     gl_FragData[0] = vec4(albedo.rgb, 0.5);
-    gl_FragData[1] = vec4(LightmapCoords, 0.0f, 1.0f);
-    gl_FragData[2] = vec4(Normal * 0.5f + 0.5, 1.0f);
+    gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
+    gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
     gl_FragData[3] = ivec4(BlockId, 1, 1, 1);
 }

@@ -31,5 +31,5 @@ void main() {
     sum = accumulation / (2 * kernelRadius + 1 + partialKernel);
 
     /* DRAWBUFFERS:5 */
-    gl_FragColor = vec4(sum, 1.0f);
+    gl_FragColor = vec4(sum, 1.0);
 }

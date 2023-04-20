@@ -31,29 +31,29 @@ void insert(float a, int position) {
 
 float getFocalDistance(sampler2D tex) {
 
-    insert(texture2D(tex, vec2(0.5f, 0.5f)).r, 0);
-    insert(texture2D(tex, vec2(0.515f, 0.5f)).r, 1);
-    insert(texture2D(tex, vec2(0.5f, 0.515f)).r, 2);
-    insert(texture2D(tex, vec2(0.485f, 0.5f)).r, 3);
-    insert(texture2D(tex, vec2(0.5f, 0.485f)).r, 4);
-    insert(texture2D(tex, vec2(0.515f, 0.515f)).r, 5);
-    insert(texture2D(tex, vec2(0.485f, 0.485f)).r, 6);
-    insert(texture2D(tex, vec2(0.485f, 0.515f)).r, 7);
-    insert(texture2D(tex, vec2(0.515f, 0.485f)).r, 8);
+    insert(texture2D(tex, vec2(0.5, 0.5)).r, 0);
+    insert(texture2D(tex, vec2(0.515, 0.5)).r, 1);
+    insert(texture2D(tex, vec2(0.5, 0.515)).r, 2);
+    insert(texture2D(tex, vec2(0.485, 0.5)).r, 3);
+    insert(texture2D(tex, vec2(0.5, 0.485)).r, 4);
+    insert(texture2D(tex, vec2(0.515, 0.515)).r, 5);
+    insert(texture2D(tex, vec2(0.485, 0.485)).r, 6);
+    insert(texture2D(tex, vec2(0.485, 0.515)).r, 7);
+    insert(texture2D(tex, vec2(0.515, 0.485)).r, 8);
 
     return samples[5];
 
-    // float sum = 0.0f;
+    // float sum = 0.0;
     // int radius = 7;
     // float spacing = 2 * texelSize.x;
     // float radiusTex = radius * spacing;
     // for(float x = 0.5 - radiusTex; x <= 0.5 + radiusTex; x += spacing) {
-    //     sum += texture2D(colortex3, vec2(x, 0.5f).r);
+    //     sum += texture2D(colortex3, vec2(x, 0.5).r);
     // }
     // spacing = 2 * texelSize.y;
     // radiusTex = radius * spacing;
     // for(float y = 0.5 - radiusTex; y <= 0.5 + radiusTex; y += spacing) {
-    //     sum += texture2D(colortex3, vec2(0.5f, y).r);
+    //     sum += texture2D(colortex3, vec2(0.5, y).r);
     // }
 
     // return sum / (4 * radius + 2);  // TODO: use median instead of average
@@ -75,7 +75,7 @@ void main() {
     focalDistance = near + focalDistance * (far - near);
 
     if(depth < 0.17) {
-        gl_FragData[0] = vec4(vec3(0.01), 1.0f);
+        gl_FragData[0] = vec4(vec3(0.01), 1.0);
         return;
     }
 
@@ -92,5 +92,5 @@ void main() {
     float kernelScale = min(abs(focusDifference) / dist1, 1);   // |depth - focalDistance| / focalDistance
     
     /* DRAWBUFFERS:4 */
-    gl_FragData[0] = vec4(vec3(kernelScale), 1f);
+    gl_FragData[0] = vec4(vec3(kernelScale), 1);
 }

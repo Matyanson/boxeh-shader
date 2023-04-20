@@ -17,7 +17,7 @@ const int colortex0Format = RGBA32F;
 #define NUM_SAMPLES 100
 
 float luminance(vec3 color) {
-    return dot(color, vec3(0.2125f, 0.7153f, 0.0721f));
+    return dot(color, vec3(0.2125, 0.7153, 0.0721));
 }
 
 void main() {
@@ -25,7 +25,7 @@ void main() {
    vec3 skyObjectPos = sunPosition;
    float FILTER = 0.015;
    float LUM_POW = 2;
-   if(sunAngle > 0.5f){
+   if(sunAngle > 0.5){
       skyObjectPos = moonPosition;
       FILTER = 0.15;
       LUM_POW = 1;
@@ -34,7 +34,7 @@ void main() {
    tpos = tpos / tpos.w;
    vec2 center = tpos.xy / tpos.z * 0.5 + 0.5;
    if(skyObjectPos.z > 0) {
-      gl_FragColor = vec4(albedo, 1.0f);
+      gl_FragColor = vec4(albedo, 1.0);
       return;
    }
 
@@ -65,5 +65,5 @@ void main() {
    albedo += color;
 
    /* DRAWBUFFERS:0 */
-   gl_FragColor = vec4(albedo, 1.0f);
+   gl_FragColor = vec4(albedo, 1.0);
 }

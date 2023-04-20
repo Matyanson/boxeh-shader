@@ -51,7 +51,7 @@ float LinearDepth(float z) {
 }
 
 float FogExp2(float viewDistance, float density) {
-   float factor = viewDistance * (density / sqrt(log(2.0f)));
+   float factor = viewDistance * (density / sqrt(log(2.0)));
    return exp2(-factor * factor);
 }
 
@@ -143,5 +143,5 @@ void main() {
    color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
    // color = refractionColor;
    /* DRAWBUFFERS:0 */
-   gl_FragColor = vec4(color, 1.0f);
+   gl_FragColor = vec4(color, 1.0);
 }
