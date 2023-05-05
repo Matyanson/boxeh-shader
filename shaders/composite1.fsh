@@ -20,6 +20,10 @@ uniform int isEyeInWater;
 const int colortex0Format = RGBA32F;
 */
 
+float toMeters(float depth) {
+   return near + depth * (far - near);
+}
+
 float FogExp2(float viewDistance, float density) {
     float factor = viewDistance * (density / sqrt(log(2.0)));
     return exp2(-factor * factor);
@@ -35,7 +39,7 @@ void main() {
 
     if(isEyeInWater == 1) {
         
-        color = getWaterColor(color, depth * 0.5);
+        color = getWaterColor(color, toMeters(depth));
         gl_FragData[0] = vec4(color, 1.0);
         return;
     }

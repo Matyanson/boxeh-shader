@@ -22,6 +22,10 @@ uniform mat4 gbufferModelViewInverse;
 const int colortex0Format = RGBA32F;
 */
 
+float toMeters(float depth) {
+   return near + depth * (far - near);
+}
+
 vec3 toView(vec3 pos) {
    vec4 result = vec4(pos, 1.0) * 2.0 - 1.0;
    result = (gbufferProjectionInverse * result);
@@ -87,7 +91,7 @@ void main() {
    float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-   vec3 refractionColor = isEyeInWater == 1 ? color : getWaterColor(color, depthWater, lightAlbedo);
+   vec3 refractionColor = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater));
    gl_FragColor = vec4(refractionColor, 1.0);
    return;
 
