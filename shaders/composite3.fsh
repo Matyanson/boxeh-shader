@@ -92,8 +92,8 @@ void main() {
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
    vec3 refractionColor = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater));
-   gl_FragColor = vec4(refractionColor, 1.0);
-   return;
+   // gl_FragColor = vec4(refractionColor, 1.0);
+   // return;
 
    vec3 ref = reflect(fragPosView, normalize(horizon));
    float angle = dot(normalize(ref), vec3(0, 0, 1));
