@@ -71,7 +71,9 @@ void main() {
    vec3 color = texture2D(colortex0, TexCoords).rgb;
    float isReflective = texture2D(colortex6, TexCoords).g;
 
-   if(isReflective < 0.9) {
+   if(
+      // true || 
+      isReflective < 0.9) {
       gl_FragColor = vec4(color, 1.0);
       return;
    }
@@ -99,7 +101,15 @@ void main() {
    float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
    vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
    refracted = viewToScreen(refracted);
+   blockId = texture2D(colortex6, refracted.xy).r;
+   if(floor(blockId + 0.5) != 9){
+      refracted.xy = TexCoords.xy;
+   }
    vec3 refractionColor = texture2D(colortex0, refracted.xy).rgb;
+   
+   // update depth sample pos
+   depth = texture2D(depthtex0, refracted.xy).r;
+   depthDeep = texture2D(depthtex1, refracted.xy).r;
 
 
    float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
@@ -113,10 +123,8 @@ void main() {
    ref = viewToScreen(ref);
    float refDepth = texture2D(depthtex0, ref.xy).r;
 
-   if(floor(blockId + 0.5) != 9)
-      refractionColor = color;
-
-   if(angle < 0 || refDepth < depth) {
+   blockId = texture2D(colortex6, ref.xy).r;
+   if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9){
       gl_FragColor = vec4(refractionColor, 1.0);
       return;
    }

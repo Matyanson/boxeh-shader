@@ -157,7 +157,9 @@ void main(){
     // ignore sky
     float depth = texture2D(depthtex0, TexCoords).r;
     gl_FragData[1] = vec4(LinearDepth(depth));
-    if(depth == 1.0){
+    if(
+        // true ||
+         depth == 1.0){
         gl_FragData[0] = vec4(Color, 1.0);
         return;
     }
