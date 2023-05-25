@@ -32,36 +32,42 @@ float FogExp2(float viewDistance, float density) {
 const float contrast = 1.25;
 const float brightness = 0.25;
 
+#define atmosphericFog
+
 void main() {
     vec3 color = texture2D(colortex0, TexCoords).rgb;
 
+
+    #ifdef waterColor
     float depth = texture2D(colortex3, TexCoords).r;
+    
+        if(isEyeInWater == 1) {
+            color = getWaterColor(color, toMeters(depth));
+            gl_FragData[0] = vec4(color, 1.0);
+            return;
+        }
+    #endif
 
-    if(isEyeInWater == 1) {
+    #ifdef atmosphericFog
+        if(
+        // true || 
+        depth == 1.0) {
+            gl_FragData[0] = vec4(color, 1.0);
+            return;
+        }
+
         
-        color = getWaterColor(color, toMeters(depth));
-        gl_FragData[0] = vec4(color, 1.0);
-        return;
-    }
 
-    if(
-    // true || 
-    depth == 1.0) {
-        gl_FragData[0] = vec4(color, 1.0);
-        return;
-    }
+        float density = FOG_DENSITY + rainStrength * RAIN_MODIFIER;
 
-    
+        float viewDistance = depth * far - near;
+        
+        vec3 lessContrast = contrast * 0.33 * (color - 0.5) + 0.5 + brightness;
 
-    float density = FOG_DENSITY + rainStrength * RAIN_MODIFIER;
+        float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.5, 1.0);
 
-    float viewDistance = depth * far - near;
-    
-    vec3 lessContrast = contrast * 0.33 * (color - 0.5) + 0.5 + brightness;
-
-    float contrastFactor = 1 - clamp(FogExp2(viewDistance, density), 0.5, 1.0);
-
-    color = mix(color, fogColor, contrastFactor);
+        color = mix(color, fogColor, contrastFactor);
+    #endif
 
     /* DRAWBUFFERS:0 */
     gl_FragData[0] = vec4(color, 1.0);

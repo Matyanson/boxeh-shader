@@ -13,6 +13,10 @@ uniform sampler2D colortex7;
 const int colortex6Format = RGB16F;
 */
 
+#define waterSurfaceWaves
+#define waterColor
+#define defaultWaterAlfa 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+
 vec3 applyNormalMapOnSurface(vec3 surface, vec3 normal) {
     // https://math.stackexchange.com/a/476311
     float x = normal.x;
@@ -34,16 +38,24 @@ vec3 applyNormalMapOnSurface(vec3 surface, vec3 normal) {
 void main() {
     // Sample the color
     vec4 albedo = texture2D(texture, TexCoords);
-
-    vec3 waveNormalColor = texture2D(colortex7, TexCoords * 64).rgb;
-    vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
     
-    vec3 normal = applyNormalMapOnSurface(Normal, normalize(waveNormal));
-    normal = normalize(normal) * 0.5 + 0.5;
+    #ifdef waterSurfaceWaves
+        vec3 waveNormalColor = texture2D(colortex7, TexCoords * 64).rgb;
+        vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
+        
+        vec3 normal = applyNormalMapOnSurface(Normal, normalize(waveNormal));
+        normal = normalize(normal) * 0.5 + 0.5;
+    #else
+        vec3 normal = Normal * 0.5 + 0.5;
+    #endif
 
     /* DRAWBUFFERS:0126 */
-    // gl_FragData[0] = vec4(albedo.rgb, 1) * vec4(Color.rgb, 0.5);
-    gl_FragData[0] = vec4(albedo.rgb, 0.5);
+    // 
+    #ifdef waterColor
+        gl_FragData[0] = vec4(albedo.rgb, defaultWaterAlfa);
+    #else
+        gl_FragData[0] = gl_FragData[0] = vec4(albedo.rgb * Color.rgb, defaultWaterAlfa);
+    #endif
     gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
     gl_FragData[2] = vec4(normal, 1.0);
     gl_FragData[3] = ivec4(BlockId, 1, 1, 1);

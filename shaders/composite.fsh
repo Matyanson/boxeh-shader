@@ -5,7 +5,6 @@
 #define SHADOW_SAMPLES 1
 
 varying vec2 TexCoords;
-out vec3 sunColor;
 
 // Direction of the sun (not normalized!)
 uniform vec3 sunPosition;
@@ -43,6 +42,9 @@ const int shadowMapResolution = 2048;
 const int noiseTextureResolution = 128;
 
 const float Ambient = 0.025;
+
+#define customLighting
+#define shadows
 
 float Visibility(in sampler2D ShadowMap, in vec3 SampleCoords) {
     return step(SampleCoords.z - 0.0004, texture2D(ShadowMap, SampleCoords.xy).r);
@@ -131,9 +133,13 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 noonColor = vec3(1.0, 1.0, 0.9);    // slightly yellow
     vec3 sunsetColor = vec3(1.0, 0.42, 0.0); //vec3(1.0, 0.78, 0.62);    // orange - represented by rgb wavelength
     float sunDayAngle = abs(4 * sunAngle - 2) - 1;
-    sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
-    vec3 shadow = getShadow(depth);
-    vec3 RayColor = 1.5 * shadow * sunColor;
+    vec3 sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
+    #ifdef shadows
+        vec3 shadow = getShadow(depth);
+        vec3 RayColor = 1.5 * shadow * sunColor;
+    #else
+        vec3 RayColor = 1.5 * sunColor;
+    #endif
     float moonIntensity = (8  - moonPhase) / 8 * 0.12;
     float sunIntensity = 1;
     if(abs(sunDayAngle) > 0.75) {
@@ -153,7 +159,6 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 void main(){
     // Account for gamma correction
     vec3 Color = pow(texture2D(colortex0, TexCoords).rgb, vec3(2.2));
-        sunColor = vec3(0.0);
     // ignore sky
     float depth = texture2D(depthtex0, TexCoords).r;
     gl_FragData[1] = vec4(LinearDepth(depth));
@@ -172,8 +177,13 @@ void main(){
         max(dot(Normal, normalize(moonPosition)), 0.0) :
         max(dot(Normal, normalize(sunPosition)), 0.0);
     // Do the lighting calculations
-    vec3 light = getLight(Lightmap, NdotL, depth);
-    vec3 Diffuse = Color * light;
+    vec3 light = vec3(1.0);
+    #ifdef customLighting
+        light = getLight(Lightmap, NdotL, depth);
+        vec3 Diffuse = Color * light;
+    #else
+        vec3 Diffuse = Color;
+    #endif
     /* DRAWBUFFERS:031 */
     // Finally write the diffuse color
     // Lightmap = texture2D(colortex1, TexCoords).rg;

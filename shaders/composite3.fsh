@@ -22,6 +22,10 @@ uniform mat4 gbufferModelViewInverse;
 const int colortex0Format = RGBA32F;
 */
 
+#define waterColor
+#define waterReflection
+#define waterRefraction
+
 float toMeters(float depth) {
    return near + depth * (far - near);
 }
@@ -55,17 +59,6 @@ float LinearDepth(float z) {
    return 1.0 / ((1 - far / near) * z + (far / near));
 }
 
-float FogExp2(float viewDistance, float density) {
-   float factor = viewDistance * (density / sqrt(log(2.0)));
-   return exp2(-factor * factor);
-}
-
-
-
-vec3 screenBlend(vec3 base, vec3 blend) {
-   return vec3(1) - ((vec3(1)-base) * (vec3(1)-blend));
-}
-
 
 void main() {
    vec3 color = texture2D(colortex0, TexCoords).rgb;
@@ -78,7 +71,8 @@ void main() {
       return;
    }
    
-   float blockId = texture2D(colortex6, TexCoords).r;
+   /*---- 0. declare variables ----*/
+   float blockId;
    float depth = texture2D(depthtex0, TexCoords).r;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    vec3 normal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
@@ -89,70 +83,82 @@ void main() {
    vec3 fragPosDeepView = toView(fragPosDeep);
    vec3 projection = dot(fragPosView, normal) * normal;
    vec3 c = fragPosView - projection;
-   vec3 horizon = normalize(c);
-   horizon *= (far + 16);
-   horizon = normalize(horizon + projection);
 
 
    
-   // calculate refraction
-   // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
-   vec3 b = fragPosDeepView - fragPosView;
-   float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
-   vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
-   refracted = viewToScreen(refracted);
-   blockId = texture2D(colortex6, refracted.xy).r;
-   if(floor(blockId + 0.5) != 9){
-      refracted.xy = TexCoords.xy;
-   }
-   vec3 refractionColor = texture2D(colortex0, refracted.xy).rgb;
-   
-   // update depth sample pos
-   depth = texture2D(depthtex0, refracted.xy).r;
-   depthDeep = texture2D(depthtex1, refracted.xy).r;
+   /*---- 1. calculate refraction ----*/
+   vec3 refractionColor = color;
+   #ifdef waterRefraction
+      // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
+      vec3 b = fragPosDeepView - fragPosView;
+      float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
+      vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
+      refracted = viewToScreen(refracted);
 
+      // save refracted pixel color
+      blockId = texture2D(colortex6, refracted.xy).r;
+      if(floor(blockId + 0.5) != 9){
+         refracted.xy = TexCoords.xy;
+      }
+      refractionColor = texture2D(colortex0, refracted.xy).rgb;
+      
+      // update depth sample pos
+      depth = texture2D(depthtex0, refracted.xy).r;
+      depthDeep = texture2D(depthtex1, refracted.xy).r;
+   #endif
 
-   float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
-   float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-   refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater));
-   // gl_FragColor = vec4(refractionColor, 1.0);
-   // return;
+   /*---- 2. calculate color underwater ----*/
+   #ifdef waterColor
+      // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
+      float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+      refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater));
+   #endif
 
-   vec3 ref = reflect(fragPosView, normalize(horizon));
-   float angle = dot(normalize(ref), vec3(0, 0, 1));
-   ref = viewToScreen(ref);
-   float refDepth = texture2D(depthtex0, ref.xy).r;
+   /*---- 3. calculate reflection -----*/
+   #ifdef waterReflection
+      vec3 horizon = normalize(c);
+      horizon *= (far + 16);
+      horizon = normalize(horizon + projection);
 
-   blockId = texture2D(colortex6, ref.xy).r;
-   if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9){
-      gl_FragColor = vec4(refractionColor, 1.0);
-      return;
-   }
+      vec3 ref = reflect(fragPosView, normalize(horizon));
+      float angle = dot(normalize(ref), vec3(0, 0, 1));
+      ref = viewToScreen(ref);
+      float refDepth = texture2D(depthtex0, ref.xy).r;
 
-   /*horizon = viewToScreen(horizon);
-   horizon = horizon * 2.0 - 1.0;
-   // horizon -= vec3(0,0.1,0);
+      blockId = texture2D(colortex6, ref.xy).r;
+      if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9){
+         gl_FragColor = vec4(refractionColor, 1.0);
+         return;
+      }
 
-   vec2 toHorizon = -fragPos.xy + horizon.xy;
-   // project toHorizon on horizon direction
-   vec2 horizonNorm = normalize(horizon.xy);
-   toHorizon = dot(toHorizon, horizonNorm) * horizonNorm;
+      /*horizon = viewToScreen(horizon);
+      horizon = horizon * 2.0 - 1.0;
+      // horizon -= vec3(0,0.1,0);
 
-   vec2 reflection = fragPos.xy + 2 * toHorizon;
-   reflection = fragPos.xy + 2 * toHorizon.xy;
-   reflection = reflection * 0.5 + 0.5;*/
+      vec2 toHorizon = -fragPos.xy + horizon.xy;
+      // project toHorizon on horizon direction
+      vec2 horizonNorm = normalize(horizon.xy);
+      toHorizon = dot(toHorizon, horizonNorm) * horizonNorm;
 
-   float fresnel = clamp(dot(-normalize(fragPosView), normal), 0, 1);
-   vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
-   float distFromScreen = 0.2 + distFromScreen(ref.xy);
-   float edgeTransiton = 0;
-   
-   if(distFromScreen > 0)
-      edgeTransiton = clamp(distFromScreen * 4, 0, 1);
-   reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton));
-   
-   color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
-   // color = refractionColor;
+      vec2 reflection = fragPos.xy + 2 * toHorizon;
+      reflection = fragPos.xy + 2 * toHorizon.xy;
+      reflection = reflection * 0.5 + 0.5;*/
+
+      /*---- 4. combine reflextion and refraction ----*/
+      vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
+      float fresnel = clamp(dot(-normalize(fragPosView), normal), 0, 1);
+      float distFromScreen = 0.2 + distFromScreen(ref.xy);
+      float edgeTransiton = 0;
+      
+      if(distFromScreen > 0)
+         edgeTransiton = clamp(distFromScreen * 4, 0, 1);
+      reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton));
+      
+      color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
+   #else
+      color = refractionColor;
+   #endif
+
    /* DRAWBUFFERS:0 */
    gl_FragColor = vec4(color, 1.0);
 }
