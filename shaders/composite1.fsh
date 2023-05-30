@@ -32,14 +32,14 @@ float FogExp2(float viewDistance, float density) {
 const float contrast = 1.25;
 const float brightness = 0.25;
 
+#define waterColor
 #define atmosphericFog
 
 void main() {
     vec3 color = texture2D(colortex0, TexCoords).rgb;
-
+    float depth = texture2D(colortex3, TexCoords).r;
 
     #ifdef waterColor
-    float depth = texture2D(colortex3, TexCoords).r;
     
         if(isEyeInWater == 1) {
             color = getWaterColor(color, toMeters(depth));

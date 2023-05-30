@@ -15,7 +15,7 @@ const int colortex6Format = RGB16F;
 
 #define waterSurfaceWaves
 #define waterColor
-#define defaultWaterAlfa 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 vec3 applyNormalMapOnSurface(vec3 surface, vec3 normal) {
     // https://math.stackexchange.com/a/476311
@@ -52,9 +52,11 @@ void main() {
     /* DRAWBUFFERS:0126 */
     // 
     #ifdef waterColor
-        gl_FragData[0] = vec4(albedo.rgb, defaultWaterAlfa);
+        gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
     #else
-        gl_FragData[0] = gl_FragData[0] = vec4(albedo.rgb * Color.rgb, defaultWaterAlfa);
+        vec4 finalColor = albedo * Color;
+        finalColor.a *= defaultWaterOpacity;
+        gl_FragData[0] = finalColor;
     #endif
     gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
     gl_FragData[2] = vec4(normal, 1.0);
