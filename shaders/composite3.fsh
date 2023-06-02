@@ -50,7 +50,7 @@ vec3 viewToScreen(vec3 viewPos) {
 }
 
 float distFromScreen(vec2 point) {
-   float dx = max(0 -point.x, point.x - 1);
+   float dx = max(0 - point.x, point.x - 1);
    float dy = max(0 - point.y, point.y - 1);
    return max(dx, dy);
 }

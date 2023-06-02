@@ -35,7 +35,7 @@ const int colortex2Format = RGB16F;
 const int colortex3Format = R32F;
 */
 
-const int ShadowSamplesPerSize = 1 * SHADOW_SAMPLES + 1;
+const int ShadowSamplesPerSize = 2 * SHADOW_SAMPLES + 1;
 const int TotalSamples = ShadowSamplesPerSize * ShadowSamplesPerSize;
 const float sunPathRotation = 37.7;
 const int shadowMapResolution = 2048;
