@@ -136,12 +136,12 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 sunColor = mix(noonColor, sunsetColor, sunDayAngle * sunDayAngle);
     #ifdef shadows
         vec3 shadow = getShadow(depth);
-        vec3 RayColor = 1.5 * shadow * sunColor;
+        vec3 RayColor = 2.0 * shadow * sunColor;
     #else
-        vec3 RayColor = 1.5 * sunColor;
+        vec3 RayColor = 2.0 * sunColor;
     #endif
     float moonIntensity = (8  - moonPhase) / 8 * 0.12;
-    float sunIntensity = 1;
+    float sunIntensity = 1.0;
     if(abs(sunDayAngle) > 0.75) {
         float t = (4*(abs(sunDayAngle)-0.75));
         sunIntensity = moonIntensity * t + 1-t;
@@ -149,8 +149,8 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     }
 
     vec3 light = sunAngle < 0.5 ?
-        NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, sunIntensity * 0.1) :
-        moonIntensity * NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, moonIntensity * 0.1);
+        NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, sunIntensity * 0.3) :
+        moonIntensity * NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, moonIntensity * 0.3);
     
     //return RayColor;
     return scaleMaxTreshold(light, 1.15);
