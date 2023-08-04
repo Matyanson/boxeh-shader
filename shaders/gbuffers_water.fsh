@@ -8,6 +8,7 @@ flat varying int BlockId;
 
 uniform sampler2D texture;
 uniform sampler2D colortex7;
+uniform float frameTimeCounter;
 
 /*
 const int colortex6Format = RGB16F;
@@ -38,7 +39,8 @@ void main() {
     vec4 albedo = texture2D(texture, TexCoords);
     
     #ifdef waterSurfaceWaves
-        vec3 waveNormalColor = texture2D(colortex7, TexCoords * 64).rgb;
+        float offset = frameTimeCounter * 0.003;
+        vec3 waveNormalColor = texture2D(colortex7, (TexCoords + offset) * 64).rgb;
         vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
         
         mat3 TBN = getTBNMatrix(Normal);

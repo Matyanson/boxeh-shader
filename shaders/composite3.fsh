@@ -145,7 +145,7 @@ void main() {
       float distFromScreen = 0.2 + distFromScreen(ref.xy);
       float edgeTransiton = 0;
 
-      vec3 reflectionDefaultColor = mix(refractionColor, skyColor, 0.2);
+      vec3 reflectionDefaultColor = isEyeInWater == 1 ? refractionColor : mix(refractionColor, skyColor, 0.2);
       if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9)
          reflectionColor = reflectionDefaultColor;
       
