@@ -126,11 +126,6 @@ void main() {
       float refDepth = texture2D(depthtex0, ref.xy).r;
 
       blockId = texture2D(colortex6, ref.xy).r;
-      if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9){
-         gl_FragColor = vec4(refractionColor, 1.0);
-         return;
-      }
-
       /*horizon = viewToScreen(horizon);
       horizon = horizon * 2.0 - 1.0;
       // horizon -= vec3(0,0.1,0);
@@ -149,10 +144,16 @@ void main() {
       float fresnel = clamp(dot(-normalize(fragPosView), normal), 0, 1);
       float distFromScreen = 0.2 + distFromScreen(ref.xy);
       float edgeTransiton = 0;
+
+      vec3 reflectionDefaultColor = mix(refractionColor, skyColor, 0.2);
+      if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9)
+         reflectionColor = reflectionDefaultColor;
       
       if(distFromScreen > 0)
          edgeTransiton = clamp(distFromScreen * 4, 0, 1);
-      reflectionColor = mix(refractionColor, reflectionColor, (1 - edgeTransiton));
+      reflectionColor = mix(reflectionDefaultColor, reflectionColor, (1 - edgeTransiton));
+      
+      
       
       color = mix(reflectionColor, refractionColor, pow(fresnel, 0.5));
    #else

@@ -17,22 +17,20 @@ const int colortex6Format = RGB16F;
 #define waterColor
 #define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
-vec3 applyNormalMapOnSurface(vec3 surface, vec3 normal) {
-    // https://math.stackexchange.com/a/476311
-    float x = normal.x;
-    float y = normal.y;
-    float z = normal.z;
-    float x2 = x * x;
-    float y2 = y * y;
-    float xy = x * y;
-    float z1 = z + 1.0;
 
-    mat3 rotation;
-    rotation[0] = vec3(1.0 - x2/z1, -xy/z1,         x);
-    rotation[1] = vec3(-xy/z1,      1.0 - y2/z1,    y);
-    rotation[2] = vec3(-x,          -y,             1.0 - (x2 + y2)/z1);
+mat3 getTBNMatrix(vec3 normal) {
+    //https://viscircle.de/which-techniques-you-can-use-for-normal-mapping/?lang=en http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/#normal-textures
+    // from tangent space to model space
+    vec3 randomV = vec3(0, 0, 1);
+    vec3 tangent = normalize(randomV - dot(randomV, normal) * normal);//normalize(randomV - normal.z * normal); //project randomV onto a plane defined by normal
+    vec3 biTangent = normalize(cross(normal, tangent));
 
-    return surface * rotation;
+    mat3 TBN;
+    TBN[0] = vec3(tangent.x, biTangent.x, normal.x);
+    TBN[1] = vec3(tangent.y, biTangent.y, normal.y);
+    TBN[2] = vec3(tangent.z, biTangent.z, normal.z);
+
+    return TBN;
 }
 
 void main() {
@@ -43,14 +41,14 @@ void main() {
         vec3 waveNormalColor = texture2D(colortex7, TexCoords * 64).rgb;
         vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
         
-        vec3 normal = applyNormalMapOnSurface(Normal, normalize(waveNormal));
+        mat3 TBN = getTBNMatrix(Normal);
+        vec3 normal = normalize(waveNormal) * TBN;
         normal = normalize(normal) * 0.5 + 0.5;
     #else
         vec3 normal = Normal * 0.5 + 0.5;
     #endif
 
     /* DRAWBUFFERS:0126 */
-    // 
     #ifdef waterColor
         gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
     #else
