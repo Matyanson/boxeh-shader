@@ -39,13 +39,19 @@ void main() {
     vec4 albedo = texture2D(texture, TexCoords);
     
     #ifdef waterSurfaceWaves
-        float offset = frameTimeCounter * 0.003;
+        float offset = frameTimeCounter * 0.0035 ;
         vec3 waveNormalColor = texture2D(colortex7, (TexCoords + offset) * 64).rgb;
         vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
         
         mat3 TBN = getTBNMatrix(Normal);
         vec3 normal = normalize(waveNormal) * TBN;
-        normal = normalize(normal) * 0.5 + 0.5;
+        normal = normalize(normal);
+        // fix: reflection is pointing underwater
+        if(normal.z - Normal.z < -0.01) {
+            normal.z = Normal.z;
+            normalize(normal);
+        }
+        normal = normal * 0.5 + 0.5;
     #else
         vec3 normal = Normal * 0.5 + 0.5;
     #endif

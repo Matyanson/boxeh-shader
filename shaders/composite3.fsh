@@ -10,6 +10,7 @@ uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform vec3 skyColor;
+uniform float sunAngle;
 uniform float near, far;
 uniform int isEyeInWater;
 
@@ -126,18 +127,6 @@ void main() {
       float refDepth = texture2D(depthtex0, ref.xy).r;
 
       blockId = texture2D(colortex6, ref.xy).r;
-      /*horizon = viewToScreen(horizon);
-      horizon = horizon * 2.0 - 1.0;
-      // horizon -= vec3(0,0.1,0);
-
-      vec2 toHorizon = -fragPos.xy + horizon.xy;
-      // project toHorizon on horizon direction
-      vec2 horizonNorm = normalize(horizon.xy);
-      toHorizon = dot(toHorizon, horizonNorm) * horizonNorm;
-
-      vec2 reflection = fragPos.xy + 2 * toHorizon;
-      reflection = fragPos.xy + 2 * toHorizon.xy;
-      reflection = reflection * 0.5 + 0.5;*/
 
       /*---- 4. combine reflextion and refraction ----*/
       vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
@@ -146,8 +135,8 @@ void main() {
       float edgeTransiton = 0;
 
       vec3 reflectionDefaultColor = isEyeInWater == 1 ? refractionColor : mix(refractionColor, skyColor, 0.2);
-      if(angle < 0 || refDepth < depth || floor(blockId + 0.5) == 9)
-         reflectionColor = reflectionDefaultColor;
+      if(refDepth < depth)
+         reflectionColor = sunAngle > 0.0 && sunAngle < 0.45 ? reflectionDefaultColor : 0.0;
       
       if(distFromScreen > 0)
          edgeTransiton = clamp(distFromScreen * 4, 0, 1);
