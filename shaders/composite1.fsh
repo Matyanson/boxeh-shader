@@ -16,10 +16,6 @@ uniform float rainStrength;
 uniform int isEyeInWater;
 
 
-/*
-const int colortex0Format = RGBA32F;
-*/
-
 float toMeters(float depth) {
    return near + depth * (far - near);
 }
@@ -42,7 +38,8 @@ void main() {
     #ifdef waterColor
     
         if(isEyeInWater == 1) {
-            color = getWaterColor(color, toMeters(depth));
+            float LightIntensity = texture2D(colortex1, TexCoords).b;
+            color = getWaterColor(color, toMeters(depth), LightIntensity);
             gl_FragData[0] = vec4(color, 1.0);
             return;
         }

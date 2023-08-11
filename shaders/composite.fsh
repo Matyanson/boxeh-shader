@@ -30,7 +30,7 @@ uniform mat4 shadowProjection;
 
 /*
 const int colortex0Format = RGBA16F;
-const int colortex1Format = RG16F;
+const int colortex1Format = RGB16F;
 const int colortex2Format = RGB16F;
 const int colortex3Format = R32F;
 */

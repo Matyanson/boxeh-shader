@@ -112,7 +112,8 @@ void main() {
    #ifdef waterColor
       // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
       float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-      refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater));
+      float LightIntensity = texture2D(colortex1, TexCoords).b;
+      refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater), LightIntensity);
    #endif
 
    /*---- 3. calculate reflection -----*/
