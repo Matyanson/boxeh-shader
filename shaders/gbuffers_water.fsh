@@ -47,11 +47,6 @@ void main() {
         mat3 TBN = getTBNMatrix(Normal);
         vec3 normal = normalize(waveNormal) * TBN;
         normal = normalize(normal);
-        // fix: reflection is pointing underwater
-        if(normal.z - Normal.z < -0.01) {
-            normal.z = Normal.z;
-            normalize(normal);
-        }
         normal = normal * 0.5 + 0.5;
     #else
         vec3 normal = Normal * 0.5 + 0.5;

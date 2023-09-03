@@ -54,7 +54,7 @@ vec3 viewToScreen(vec3 viewPos) {
 float distFromScreen(vec2 point) {
    float dx = max(0 - point.x, point.x - 1);
    float dy = max(0 - point.y, point.y - 1);
-   return max(dx, dy);
+   return max(dx, dy + 0.2);
 }
 
 float LinearDepth(float z) {
@@ -120,6 +120,17 @@ void main() {
 
    /*---- 3. calculate reflection -----*/
    #ifdef waterReflection
+
+      // fix: don't reflect under horizon
+      if(
+         dot(originalNormal, normalize(c)) <
+         dot(normal, normalize(fragPosView))
+      ) {
+         normal = originalNormal;
+         projection = dot(fragPosView, normal) * normal;
+         c = fragPosView - projection;
+      }
+      
       vec3 horizon = normalize(c);
       horizon *= (far + 16);
       horizon = normalize(horizon + projection);
@@ -134,7 +145,7 @@ void main() {
       /*---- 4. combine reflextion and refraction ----*/
       vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;
       float fresnel = clamp(dot(-normalize(fragPosView), normal), 0, 1);
-      float distFromScreen = 0.2 + distFromScreen(ref.xy);
+      float distFromScreen = distFromScreen(ref.xy);
       float edgeTransiton = 0;
 
       vec3 reflectionDefaultColor = isEyeInWater == 1 ? refractionColor : mix(refractionColor, skyColor, 0.2);
