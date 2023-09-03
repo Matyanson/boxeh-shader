@@ -150,7 +150,7 @@ void main() {
 
       vec3 reflectionDefaultColor = isEyeInWater == 1 ? refractionColor : mix(refractionColor, skyColor, 0.2);
       if(refDepth < depth)
-         reflectionColor = sunAngle > 0.0 && sunAngle < 0.45 ? reflectionDefaultColor : 0.0;
+         reflectionColor = sunAngle > 0.0 && sunAngle < 0.45 ? reflectionDefaultColor : vec3(0.0);
       
       if(distFromScreen > 0)
          edgeTransiton = clamp(distFromScreen * 4, 0, 1);
