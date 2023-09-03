@@ -14,10 +14,14 @@ uniform int moonPhase;
 uniform float near, far;
 
 // The color textures which we wrote to
-uniform sampler2D colortex0;
-uniform sampler2D colortex1;
-uniform sampler2D colortex2;
-uniform sampler2D depthtex0;
+uniform sampler2D colortex0;    // color
+uniform sampler2D colortex1;    // lightmap
+uniform sampler2D colortex2;    // normal
+                                // linear depth
+                                // dof kernel scale
+                                // modified normal -> dof color blur
+                                // blockId
+uniform sampler2D depthtex0;    // depth
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;

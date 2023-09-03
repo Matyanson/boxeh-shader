@@ -6,6 +6,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
+uniform sampler2D colortex5;
 uniform sampler2D colortex6;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
@@ -76,7 +77,8 @@ void main() {
    float blockId;
    float depth = texture2D(depthtex0, TexCoords).r;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
-   vec3 normal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
+   vec3 originalNormal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
+   vec3 normal = texture2D(colortex5, TexCoords).rgb * 2.0 - 1.0;
    vec3 fragPos = vec3(TexCoords, depth);
    vec3 fragPosDeep = vec3(TexCoords, depthDeep);
    vec3 fragPosView = toView(fragPos);

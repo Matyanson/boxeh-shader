@@ -11,6 +11,7 @@ uniform sampler2D colortex7;
 uniform float frameTimeCounter;
 
 /*
+const int colortex5Format = RGBA32F;
 const int colortex6Format = RGB16F;
 */
 
@@ -56,7 +57,7 @@ void main() {
         vec3 normal = Normal * 0.5 + 0.5;
     #endif
 
-    /* DRAWBUFFERS:0126 */
+    /* DRAWBUFFERS:01256 */
     #ifdef waterColor
         gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
     #else
@@ -65,6 +66,7 @@ void main() {
         gl_FragData[0] = finalColor;
     #endif
     gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
-    gl_FragData[2] = vec4(normal, 1.0);
-    gl_FragData[3] = ivec4(BlockId, 1, 1, 1);
+    gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
+    gl_FragData[3] = vec4(normal, 1.0);
+    gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
 }
