@@ -45,6 +45,7 @@ void main() {
     gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
 
     if(floor(BlockId + 0.5) != 9){
+        gl_FragData[0] = Color * albedo;
         gl_FragData[3] = vec4(Normal * 0.5 + 0.5, 1.0);
         return;
     }

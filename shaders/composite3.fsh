@@ -102,20 +102,24 @@ void main() {
       blockId = texture2D(colortex6, refracted.xy).r;
       if(floor(blockId + 0.5) != 9){
          refracted.xy = TexCoords.xy;
-      }
-      refractionColor = texture2D(colortex0, refracted.xy).rgb;
+      } else {
+         refractionColor = texture2D(colortex0, refracted.xy).rgb;
       
-      // update depth sample pos
-      depth = texture2D(depthtex0, refracted.xy).r;
-      depthDeep = texture2D(depthtex1, refracted.xy).r;
+         // update depth sample pos
+         depth = texture2D(depthtex0, refracted.xy).r;
+         depthDeep = texture2D(depthtex1, refracted.xy).r;
+      }
+      
    #endif
 
    /*---- 2. calculate color underwater ----*/
    #ifdef waterColor
-      // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
-      float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-      float LightIntensity = texture2D(colortex1, TexCoords).b;
-      refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater), LightIntensity);
+      if(floor(blockId + 0.5) == 9) {
+         // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
+         float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+         float LightIntensity = texture2D(colortex1, TexCoords).b;
+         refractionColor = isEyeInWater == 1 ? color : getWaterColor(refractionColor, toMeters(depthWater), LightIntensity);
+      }
    #endif
 
    /*---- 3. calculate reflection -----*/
