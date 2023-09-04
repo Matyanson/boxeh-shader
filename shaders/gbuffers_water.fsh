@@ -39,6 +39,16 @@ void main() {
     // Sample the color
     vec4 albedo = texture2D(texture, TexCoords);
     
+    /* DRAWBUFFERS:01256 */
+    gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
+    gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
+    gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
+
+    if(floor(BlockId + 0.5) != 9){
+        gl_FragData[3] = vec4(Normal * 0.5 + 0.5, 1.0);
+        return;
+    }
+
     #ifdef waterSurfaceWaves
         float offset = frameTimeCounter * 0.0035 ;
         vec3 waveNormalColor = texture2D(colortex7, (TexCoords + offset) * 64).rgb;
@@ -52,7 +62,6 @@ void main() {
         vec3 normal = Normal * 0.5 + 0.5;
     #endif
 
-    /* DRAWBUFFERS:01256 */
     #ifdef waterColor
         gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
     #else
@@ -60,8 +69,5 @@ void main() {
         finalColor.a *= defaultWaterOpacity;
         gl_FragData[0] = finalColor;
     #endif
-    gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
-    gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
     gl_FragData[3] = vec4(normal, 1.0);
-    gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
 }

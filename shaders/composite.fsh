@@ -130,7 +130,8 @@ vec3 GetLightmapColor(in vec2 Lightmap, float torchIntensity, float skyIntensity
     vec3 SkyLighting = skyIntensity * Lightmap.y * SkyColor;
     vec3 LightmapLighting = TorchLighting + SkyLighting;
 
-    return LightmapLighting;
+    // todo: returns negative values idk why...
+    return max(LightmapLighting, 0);
 }
 
 vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
@@ -185,8 +186,11 @@ void main(){
     #ifdef customLighting
         light = getLight(Lightmap, NdotL, depth);
         vec3 Diffuse = Color * light;
+        // Lightmap = AdjustLightmap(Lightmap);
+        // vec3 Diffuse = vec3(Lightmap, 0.0);
     #else
-        vec3 Diffuse = Color;
+        light = Lightmap.r * vec3(1.0) + Lightmap.g * vec3(0.9, 0.9, 1.0);
+        vec3 Diffuse = vec3(Lightmap, 0.0); //Color * light;
     #endif
     /* DRAWBUFFERS:031 */
     // Finally write the diffuse color

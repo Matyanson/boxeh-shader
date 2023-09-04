@@ -36,11 +36,11 @@ void main() {
     Normal = normalize(gl_NormalMatrix * gl_Normal);
     BlockId = int(mc_Entity.x);
 
-    if(floor(mc_Entity.x + 0.5) != 9) return;
 
     #ifndef waterWaving
 		gl_Position = ftransform();
 	#else
+		if(floor(mc_Entity.x + 0.5) != 9) return;
 		vec4 position = gl_ModelViewMatrix * gl_Vertex;
 
 		vec4 viewpos = gbufferModelViewInverse * position;
