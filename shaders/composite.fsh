@@ -107,6 +107,8 @@ float AdjustLightmapTorch(in float torch) {
 }
 
 float AdjustLightmapSky(in float sky){
+    // fix: don't accept negative values
+    sky = max(sky, 0.0);
     const float K = 1.2;
     const float P = 2.4;
     return K * pow(sky, P);
@@ -130,8 +132,7 @@ vec3 GetLightmapColor(in vec2 Lightmap, float torchIntensity, float skyIntensity
     vec3 SkyLighting = skyIntensity * Lightmap.y * SkyColor;
     vec3 LightmapLighting = TorchLighting + SkyLighting;
 
-    // todo: returns negative values idk why...
-    return max(LightmapLighting, 0);
+    return LightmapLighting;
 }
 
 vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
@@ -186,15 +187,12 @@ void main(){
     #ifdef customLighting
         light = getLight(Lightmap, NdotL, depth);
         vec3 Diffuse = Color * light;
-        // Lightmap = AdjustLightmap(Lightmap);
-        // vec3 Diffuse = vec3(Lightmap, 0.0);
     #else
         light = Lightmap.r * vec3(1.0) + Lightmap.g * vec3(0.9, 0.9, 1.0);
         vec3 Diffuse = vec3(Lightmap, 0.0); //Color * light;
     #endif
     /* DRAWBUFFERS:031 */
     // Finally write the diffuse color
-    // Lightmap = texture2D(colortex1, TexCoords).rg;
     gl_FragData[0] = vec4(Diffuse, 1.0);
     // store light albedo to colortex1
     gl_FragData[2] = vec4(texture2D(colortex1, TexCoords).rg, light.r, 1);
