@@ -122,7 +122,9 @@ vec2 AdjustLightmap(in vec2 Lightmap){
 }
 
 vec3 GetLightmapColor(in vec2 Lightmap, float torchIntensity, float skyIntensity){
-    // First adjust the lightmap
+    // Transform Lightmap into the [0, 1] range
+    Lightmap = (Lightmap * 33.05 / 32.0) - (1.05f / 32.0);
+    // Adjust the lightmap
     Lightmap = AdjustLightmap(Lightmap);
 
     const vec3 TorchColor = vec3(1.0, 0.6, 0.2);
@@ -188,8 +190,7 @@ void main(){
         light = getLight(Lightmap, NdotL, depth);
         vec3 Diffuse = Color * light;
     #else
-        light = Lightmap.r * vec3(1.0) + Lightmap.g * vec3(0.9, 0.9, 1.0);
-        vec3 Diffuse = vec3(Lightmap, 0.0); //Color * light;
+        vec3 Diffuse = Color;
     #endif
     /* DRAWBUFFERS:031 */
     // Finally write the diffuse color

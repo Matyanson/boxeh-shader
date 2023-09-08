@@ -1,12 +1,13 @@
 #version 120
 
 varying vec2 TexCoords;
-varying vec4 Color;
+varying vec4 Tint;
 varying vec2 LightmapCoords;
 varying vec3 Normal;
 flat varying int BlockId;
 
 uniform sampler2D texture;
+uniform sampler2D lightmap;
 uniform sampler2D colortex7;
 uniform float frameTimeCounter;
 
@@ -38,6 +39,11 @@ mat3 getTBNMatrix(vec3 normal) {
 void main() {
     // Sample the color
     vec4 albedo = texture2D(texture, TexCoords);
+    vec4 color = albedo * Tint;
+    #ifndef customLighting
+        vec4 light = texture2D(lightmap, LightmapCoords);
+        color *= light;
+    #endif
     
     /* DRAWBUFFERS:01256 */
     gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
@@ -45,7 +51,7 @@ void main() {
     gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
 
     if(floor(BlockId + 0.5) != 9){
-        gl_FragData[0] = Color * albedo;
+        gl_FragData[0] = color;
         gl_FragData[3] = vec4(Normal * 0.5 + 0.5, 1.0);
         return;
     }
@@ -66,9 +72,8 @@ void main() {
     #ifdef waterColor
         gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
     #else
-        vec4 finalColor = albedo * Color;
-        finalColor.a *= defaultWaterOpacity;
-        gl_FragData[0] = finalColor;
+        color.a *= defaultWaterOpacity;
+        gl_FragData[0] = color;
     #endif
     gl_FragData[3] = vec4(normal, 1.0);
 }
