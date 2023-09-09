@@ -74,7 +74,7 @@ void main() {
    }
    
    /*---- 0. declare variables ----*/
-   float blockId;
+   float blockId = texture2D(colortex6, TexCoords).r;
    float depth = texture2D(depthtex0, TexCoords).r;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    vec3 originalNormal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
@@ -99,8 +99,8 @@ void main() {
       refracted = viewToScreen(refracted);
 
       // save refracted pixel color
-      blockId = texture2D(colortex6, refracted.xy).r;
-      if(floor(blockId + 0.5) != 9){
+      float refractedBlockId = texture2D(colortex6, refracted.xy).r;
+      if(floor(refractedBlockId + 0.5) != 9){
          refracted.xy = TexCoords.xy;
       } else {
          refractionColor = texture2D(colortex0, refracted.xy).rgb;
