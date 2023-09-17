@@ -14,6 +14,7 @@ uniform float frameTimeCounter;
 /*
 const int colortex5Format = RGBA32F;
 const int colortex6Format = RGB16F;
+const int colortex3Format = R32F;
 */
 
 #define waterSurfaceWaves
@@ -46,16 +47,18 @@ void main() {
         color *= light;
     #endif
     
-    /* DRAWBUFFERS:01256 */
-    gl_FragData[1] = vec4(LightmapCoords, 0.0, 1.0);
+    /* DRAWBUFFERS:0123568 */
     gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
-    gl_FragData[4] = ivec4(BlockId, 1, 1, 1);
+    gl_FragData[3] = vec4(vec3(BlockId), 1.0);
 
     if(floor(BlockId + 0.5) != 9){
         gl_FragData[0] = color;
-        gl_FragData[3] = vec4(Normal * 0.5 + 0.5, 1.0);
+        gl_FragData[1] = vec4(LightmapCoords, 1.0, 1.0);
+        gl_FragData[4] = vec4(Normal * 0.5 + 0.5, 1.0);
         return;
     }
+
+
 
     #ifdef waterSurfaceWaves
         float offset = frameTimeCounter * 0.0035 ;
@@ -71,10 +74,12 @@ void main() {
     #endif
 
     #ifdef waterColor
-        gl_FragData[0] = vec4(albedo.rgb, defaultWaterOpacity);
+        color = vec4(albedo.rgb, defaultWaterOpacity);
     #else
         color.a *= defaultWaterOpacity;
-        gl_FragData[0] = color;
     #endif
-    gl_FragData[3] = vec4(normal, 1.0);
+
+    gl_FragData[5] = vec4(color.rgb, 1.0);
+    gl_FragData[1] = vec4(LightmapCoords, 1 - color.a, 1.0);
+    gl_FragData[6] = vec4(normal, 1.0);
 }

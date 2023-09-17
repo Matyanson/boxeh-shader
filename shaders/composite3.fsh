@@ -91,26 +91,26 @@ void main() {
    
    /*---- 1. calculate refraction ----*/
    vec3 refractionColor = color;
-   #ifdef waterRefraction
-      // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
-      vec3 b = fragPosDeepView - fragPosView;
-      float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
-      vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
-      refracted = viewToScreen(refracted);
+   // #ifdef waterRefraction
+   //    // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
+   //    vec3 b = fragPosDeepView - fragPosView;
+   //    float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
+   //    vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
+   //    refracted = viewToScreen(refracted);
 
-      // save refracted pixel color
-      float refractedBlockId = texture2D(colortex6, refracted.xy).r;
-      if(floor(refractedBlockId + 0.5) != 9){
-         refracted.xy = TexCoords.xy;
-      } else {
-         refractionColor = texture2D(colortex0, refracted.xy).rgb;
+   //    // save refracted pixel color
+   //    float refractedBlockId = texture2D(colortex6, refracted.xy).r;
+   //    if(floor(refractedBlockId + 0.5) != 9){
+   //       refracted.xy = TexCoords.xy;
+   //    } else {
+   //       refractionColor = texture2D(colortex0, refracted.xy).rgb;
       
-         // update depth sample pos
-         depth = texture2D(depthtex0, refracted.xy).r;
-         depthDeep = texture2D(depthtex1, refracted.xy).r;
-      }
+   //       // update depth sample pos
+   //       depth = texture2D(depthtex0, refracted.xy).r;
+   //       depthDeep = texture2D(depthtex1, refracted.xy).r;
+   //    }
       
-   #endif
+   // #endif
 
    /*---- 2. calculate color underwater ----*/
    #ifdef waterColor

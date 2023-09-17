@@ -17,16 +17,18 @@ uniform float near, far;
 uniform sampler2D colortex0;    // color
 uniform sampler2D colortex1;    // lightmap
 uniform sampler2D colortex2;    // normal
-                                // linear depth
+uniform sampler2D colortex3;    // blockId -> linear depth
                                 // dof kernel scale
                                 // modified normal -> dof color blur
-                                // blockId
+uniform sampler2D colortex6;    // blockId
 uniform sampler2D depthtex0;    // depth
+uniform sampler2D depthtex1;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
 uniform sampler2D noisetex;
 
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
@@ -37,6 +39,9 @@ const int colortex0Format = RGBA16F;
 const int colortex1Format = RGB16F;
 const int colortex2Format = RGB16F;
 const int colortex3Format = R32F;
+const int colortex4Format = R32F;
+const int colortex5Format = RGBA32F;
+const int colortex6Format = RGB16F;
 */
 
 const int ShadowSamplesPerSize = 2 * SHADOW_SAMPLES + 1;
@@ -47,8 +52,22 @@ const int noiseTextureResolution = 128;
 
 const float Ambient = 0.025;
 
+#define waterRefraction
 #define customLighting
 #define shadows
+
+vec3 viewToScreen(vec3 viewPos) {
+  vec3 data = mat3(gbufferProjection) * viewPos;
+  data += gbufferProjection[3].xyz;
+  return ((data.xyz / -viewPos.z) * 0.5 + 0.5).xyz;
+}
+
+vec3 toView(vec3 pos) {
+   vec4 result = vec4(pos, 1.0) * 2.0 - 1.0;
+   result = (gbufferProjectionInverse * result);
+   result /= result.w;
+   return result.xyz;
+}
 
 float Visibility(in sampler2D ShadowMap, in vec3 SampleCoords) {
     return step(SampleCoords.z - 0.0004, texture2D(ShadowMap, SampleCoords.xy).r);
@@ -165,32 +184,63 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 }
 
 void main(){
-    // Account for gamma correction
-    vec3 Color = pow(texture2D(colortex0, TexCoords).rgb, vec3(2.2));
-    // ignore sky
+    /*---- 0. declare variables ----*/
+    float blockId = texture2D(colortex3, TexCoords).r;
+    vec3 normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
     float depth = texture2D(depthtex0, TexCoords).r;
+    float depthDeep = texture2D(depthtex1, TexCoords).r;
+    vec3 fragPos = vec3(TexCoords, depth);
+    vec3 fragPosDeep = vec3(TexCoords, depthDeep);
+    vec3 fragPosView = toView(fragPos);
+    vec3 fragPosDeepView = toView(fragPosDeep);
+
+    vec3 projection = dot(fragPosView, normal) * normal;
+    vec3 c = fragPosView - projection;
+
+    /*---- 1. calculate refraction ----*/
+    vec2 refractedCoords = TexCoords;
+    #ifdef waterRefraction
+    if(floor(blockId + 0.5) == 9){
+        // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
+        vec3 b = fragPosDeepView - fragPosView;
+        float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
+        vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
+        refracted = viewToScreen(refracted);
+
+        // save refracted texCoords
+        refractedCoords = refracted.xy;
+    }
+    #endif
+
+    vec3 waterColor = texture2D(colortex6, TexCoords).rgb;
+    vec3 color = texture2D(colortex0, refractedCoords).rgb;
+    float waterAlpha = texture2D(colortex1, TexCoords).b;
+
+    // combine base and water texture
+    color = mix(waterColor, color, waterAlpha);
+    // Account for gamma correction
+    color = pow(color, vec3(2.2));
+    // ignore sky
     gl_FragData[1] = vec4(LinearDepth(depth));
     if(
         // true ||
          depth == 1.0){
-        gl_FragData[0] = vec4(Color, 1.0);
+        gl_FragData[0] = vec4(color, 1.0);
         return;
     }
-    // Get the normal
-    vec3 Normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
     // Get the lightmap
     vec2 Lightmap = texture2D(colortex1, TexCoords).rg;
     // Compute cos theta between the normal and sun directions
     float NdotL = sunAngle > 0.5 ?
-        max(dot(Normal, normalize(moonPosition)), 0.0) :
-        max(dot(Normal, normalize(sunPosition)), 0.0);
+        max(dot(normal, normalize(moonPosition)), 0.0) :
+        max(dot(normal, normalize(sunPosition)), 0.0);
     // Do the lighting calculations
     vec3 light = vec3(1.0);
     #ifdef customLighting
         light = getLight(Lightmap, NdotL, depth);
-        vec3 Diffuse = Color * light;
+        vec3 Diffuse = color * light;
     #else
-        vec3 Diffuse = Color;
+        vec3 Diffuse = color;
     #endif
     /* DRAWBUFFERS:031 */
     // Finally write the diffuse color
