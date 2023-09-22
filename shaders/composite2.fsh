@@ -10,10 +10,6 @@ uniform float sunAngle;
 uniform float near, far;
 uniform mat4 gbufferProjection;
 
-/*
-const int colortex0Format = RGBA32F;
-*/
-
 #define NUM_SAMPLES 100
 #define godRay
 

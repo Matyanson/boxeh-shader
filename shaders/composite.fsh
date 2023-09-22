@@ -14,15 +14,16 @@ uniform int moonPhase;
 uniform float near, far;
 
 // The color textures which we wrote to
-uniform sampler2D colortex0;    // color
+uniform sampler2D colortex0;    // non-water color
 uniform sampler2D colortex1;    // lightmap
 uniform sampler2D colortex2;    // normal
-uniform sampler2D colortex3;    // blockId -> linear depth
-                                // dof kernel scale
-                                // modified normal -> dof color blur
+uniform sampler2D colortex3;    // terrain color
+uniform sampler2D colortex4;    // water color
+uniform sampler2D colortex5;    // original normal -> dof color blur
 uniform sampler2D colortex6;    // blockId
+uniform sampler2D colortex7;    // isEntity
 uniform sampler2D depthtex0;    // depth
-uniform sampler2D depthtex1;
+uniform sampler2D depthtex2;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
@@ -35,13 +36,14 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 
 /*
-const int colortex0Format = RGBA16F;
+const int colortex0Format = RGB16F;
 const int colortex1Format = RGB16F;
 const int colortex2Format = RGB16F;
-const int colortex3Format = R32F;
-const int colortex4Format = R32F;
-const int colortex5Format = RGBA32F;
-const int colortex6Format = RGB16F;
+const int colortex3Format = RGB16F;
+const int colortex4Format = RGB16F;
+const int colortex5Format = RGB16F;
+const int colortex6Format = R16F;
+const int colortex7Format = R16F;
 */
 
 const int ShadowSamplesPerSize = 2 * SHADOW_SAMPLES + 1;
@@ -185,10 +187,10 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 
 void main(){
     /*---- 0. declare variables ----*/
-    float blockId = texture2D(colortex3, TexCoords).r;
+    float blockId = texture2D(colortex6, TexCoords).r;
     vec3 normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
     float depth = texture2D(depthtex0, TexCoords).r;
-    float depthDeep = texture2D(depthtex1, TexCoords).r;
+    float depthDeep = texture2D(depthtex2, TexCoords).r;
     vec3 fragPos = vec3(TexCoords, depth);
     vec3 fragPosDeep = vec3(TexCoords, depthDeep);
     vec3 fragPosView = toView(fragPos);
@@ -242,9 +244,7 @@ void main(){
     #else
         vec3 Diffuse = color;
     #endif
-    /* DRAWBUFFERS:031 */
+    /* DRAWBUFFERS:03 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0);
-    // store light albedo to colortex1
-    gl_FragData[2] = vec4(texture2D(colortex1, TexCoords).rg, light.r, 1);
 }

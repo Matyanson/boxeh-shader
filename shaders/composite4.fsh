@@ -7,11 +7,6 @@ uniform sampler2D depthtex2;
 uniform float viewWidth, viewHeight;
 uniform float near, far;
 
-/*
-const int colortex0Format = RGBA32F;
-const int colortex4Format = R32F;
-*/
-
 #define DOF
 
 #ifdef DOF

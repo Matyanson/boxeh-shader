@@ -20,9 +20,6 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-/*
-const int colortex0Format = RGBA32F;
-*/
 
 #define waterColor
 #define waterReflection
@@ -64,7 +61,7 @@ float LinearDepth(float z) {
 
 void main() {
    vec3 color = texture2D(colortex0, TexCoords).rgb;
-   float isReflective = texture2D(colortex6, TexCoords).g;
+   float isReflective = texture2D(colortex3, TexCoords).g;
 
    if(
       // true || 
@@ -74,7 +71,7 @@ void main() {
    }
    
    /*---- 0. declare variables ----*/
-   float blockId = texture2D(colortex6, TexCoords).r;
+   float blockId = texture2D(colortex3, TexCoords).r;
    float depth = texture2D(depthtex0, TexCoords).r;
    float depthDeep = texture2D(depthtex1, TexCoords).r;
    vec3 originalNormal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
@@ -99,7 +96,7 @@ void main() {
    //    refracted = viewToScreen(refracted);
 
    //    // save refracted pixel color
-   //    float refractedBlockId = texture2D(colortex6, refracted.xy).r;
+   //    float refractedBlockId = texture2D(colortex3, refracted.xy).r;
    //    if(floor(refractedBlockId + 0.5) != 9){
    //       refracted.xy = TexCoords.xy;
    //    } else {
@@ -144,7 +141,7 @@ void main() {
       ref = viewToScreen(ref);
       float refDepth = texture2D(depthtex0, ref.xy).r;
 
-      blockId = texture2D(colortex6, ref.xy).r;
+      blockId = texture2D(colortex3, ref.xy).r;
 
       /*---- 4. combine reflextion and refraction ----*/
       vec3 reflectionColor = texture2D(colortex0, ref.xy).rgb;

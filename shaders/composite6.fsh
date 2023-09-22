@@ -6,11 +6,6 @@ uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform float viewWidth, viewHeight;
 
-/*
-const int colortex0Format = RGBA32F;
-const int colortex5Format = RGBA32F;
-*/
-
 #define DOF
 
 vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);

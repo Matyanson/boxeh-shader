@@ -11,12 +11,6 @@ uniform sampler2D lightmap;
 uniform sampler2D colortex7;
 uniform float frameTimeCounter;
 
-/*
-const int colortex5Format = RGBA32F;
-const int colortex6Format = RGB16F;
-const int colortex3Format = R32F;
-*/
-
 #define waterSurfaceWaves
 #define waterColor
 #define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
@@ -47,17 +41,17 @@ void main() {
         color *= light;
     #endif
     
-    /* DRAWBUFFERS:0123568 */
-    gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
-    gl_FragData[3] = vec4(vec3(BlockId), 1.0);
+    /* DRAWBUFFERS:012456 */
+    gl_FragData[4] = vec4(Normal * 0.5 + 0.5, 1.0);
+    gl_FragData[5] = vec4(BlockId, 0.0, 1.0, 1.0);
 
+    // write non-water to tex0
     if(floor(BlockId + 0.5) != 9){
         gl_FragData[0] = color;
         gl_FragData[1] = vec4(LightmapCoords, 1.0, 1.0);
-        gl_FragData[4] = vec4(Normal * 0.5 + 0.5, 1.0);
+        gl_FragData[2] = vec4(Normal * 0.5 + 0.5, 1.0);
         return;
     }
-
 
 
     #ifdef waterSurfaceWaves
@@ -79,7 +73,7 @@ void main() {
         color.a *= defaultWaterOpacity;
     #endif
 
-    gl_FragData[5] = vec4(color.rgb, 1.0);
-    gl_FragData[1] = vec4(LightmapCoords, 1 - color.a, 1.0);
-    gl_FragData[6] = vec4(normal, 1.0);
+    gl_FragData[3] = vec4(color.rgb, 1.0);
+    gl_FragData[1] = vec4(LightmapCoords, 1.0 - color.a, 1.0);
+    gl_FragData[2] = vec4(normal, 1.0);
 }
