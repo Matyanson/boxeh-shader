@@ -186,6 +186,7 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 }
 
 void main(){
+    vec3 color = texture2D(colortex0, TexCoords).rgb;
     /*---- 0. declare variables ----*/
     float blockId = texture2D(colortex6, TexCoords).r;
     vec3 normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
@@ -200,7 +201,6 @@ void main(){
     vec3 c = fragPosView - projection;
 
     /*---- 1. calculate refraction ----*/
-    vec2 refractedCoords = TexCoords;
     #ifdef waterRefraction
     if(floor(blockId + 0.5) == 9){
         // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
@@ -209,13 +209,18 @@ void main(){
         vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
         refracted = viewToScreen(refracted);
 
-        // save refracted texCoords
-        refractedCoords = refracted.xy;
+        blockId = texture2D(colortex6, refracted.xy).r;
+        if(floor(blockId + 0.5) == 9) {
+            color = texture2D(colortex0, refracted.xy).rgb;
+        } else {
+            float isEntity = texture2D(colortex7, refracted.xy).r;
+            if(isEntity < 0.1)
+                color = texture2D(colortex3, refracted.xy).rgb;
+        }
     }
     #endif
 
-    vec3 waterColor = texture2D(colortex6, TexCoords).rgb;
-    vec3 color = texture2D(colortex0, refractedCoords).rgb;
+    vec3 waterColor = texture2D(colortex4, TexCoords).rgb;
     float waterAlpha = texture2D(colortex1, TexCoords).b;
 
     // combine base and water texture
