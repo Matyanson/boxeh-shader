@@ -1,5 +1,6 @@
 #version 120
 #include "distort.glsl"
+#include "algorithms.glsl"
 #include "vec_component_operations.glsl"
 
 #define SHADOW_SAMPLES 1
@@ -12,10 +13,11 @@ uniform vec3 moonPosition;
 uniform float sunAngle;
 uniform int moonPhase;
 uniform float near, far;
+uniform int isEyeInWater;
 
 // The color textures which we wrote to
 uniform sampler2D colortex0;    // non-water color
-uniform sampler2D colortex1;    // lightmap
+uniform sampler2D colortex1;    // lightmap, water alpha
 uniform sampler2D colortex2;    // normal
 uniform sampler2D colortex3;    // terrain color
 uniform sampler2D colortex4;    // water color
@@ -54,7 +56,9 @@ const int noiseTextureResolution = 128;
 
 const float Ambient = 0.025;
 
+#define waterColor
 #define waterRefraction
+#define waterReflection
 #define customLighting
 #define shadows
 
@@ -111,6 +115,10 @@ vec3 getShadow(float depth){
     }
     ShadowAccum /= TotalSamples;
     return ShadowAccum;
+}
+
+float toMeters(float depth) {
+   return near + depth * (far - near);
 }
 
 float LinearDepth(float z) {
@@ -187,6 +195,9 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
 
 void main(){
     vec3 color = texture2D(colortex0, TexCoords).rgb;
+    vec3 waterTextureColor = texture2D(colortex4, TexCoords).rgb;
+    float waterAlpha = texture2D(colortex1, TexCoords).b;
+
     /*---- 0. declare variables ----*/
     float blockId = texture2D(colortex6, TexCoords).r;
     vec3 normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
@@ -200,18 +211,33 @@ void main(){
     vec3 projection = dot(fragPosView, normal) * normal;
     vec3 c = fragPosView - projection;
 
+    
     /*---- 1. calculate refraction ----*/
     #ifdef waterRefraction
     if(floor(blockId + 0.5) == 9){
         // 1/1.333 * sin(a) = sin(b); 0.75 * sin(a) = sin(b)
+        /*
+        sin(alpha) = len(c)/len(fragPosView)
+        sin(beta) = len(c2)/len(b)
+
+        0.75 * sin(alpha) = sin(beta)
+        0.75 * (len(c)/len(fragPosView)) = len(c2)/len(b)
+        (0.75 * (len(c)/len(fragPosView))) * len(b) = len(c2)
+        0.75 * len(b) * (len(c) / len(fragPosView)) = len(c2)
+        */
         vec3 b = fragPosDeepView - fragPosView;
-        float c2Length = 0.75 * (length(c) * length(b)) / length(fragPosView);
+        // temp fix
+        b = 3 * normalize(b);
+        float c2Length = 0.75 * length(c) * (length(b) / length(fragPosView));
         vec3 refracted = fragPosView + dot(b, normal) * normal + c2Length * normalize(c);
         refracted = viewToScreen(refracted);
 
-        blockId = texture2D(colortex6, refracted.xy).r;
-        if(floor(blockId + 0.5) == 9) {
+        float refBlockId = texture2D(colortex6, refracted.xy).r;
+        if(floor(refBlockId + 0.5) == 9) {
             color = texture2D(colortex0, refracted.xy).rgb;
+            //update depth
+            depth = texture2D(depthtex0, refracted.xy).r;
+            depthDeep = texture2D(depthtex2, refracted.xy).r;
         } else {
             float isEntity = texture2D(colortex7, refracted.xy).r;
             if(isEntity < 0.1)
@@ -220,15 +246,37 @@ void main(){
     }
     #endif
 
-    vec3 waterColor = texture2D(colortex4, TexCoords).rgb;
-    float waterAlpha = texture2D(colortex1, TexCoords).b;
+    vec3 ref = vec3(1.0);
+    #ifdef waterReflection
+    if(floor(blockId + 0.5) == 9){
+        vec3 originalNormal = normalize(texture2D(colortex5, TexCoords).rgb * 2.0 - 1.0);
+
+        // fix: don't reflect under horizon
+        if(
+            dot(originalNormal, normalize(c)) <
+            dot(normal, normalize(fragPosView))
+        ) {
+            normal = originalNormal;
+            projection = dot(fragPosView, normal) * normal;
+            c = fragPosView - projection;
+        }
+
+        vec3 horizon = normalize(c);
+        horizon *= (far + 16);
+        horizon = normalize(horizon + projection);
+
+        ref = reflect(fragPosView, normalize(horizon));
+        ref = viewToScreen(ref);
+    }
+    #endif
 
     // combine base and water texture
-    color = mix(waterColor, color, waterAlpha);
+    color = mix(waterTextureColor, color, waterAlpha);
     // Account for gamma correction
     color = pow(color, vec3(2.2));
+
     // ignore sky
-    gl_FragData[1] = vec4(LinearDepth(depth));
+    gl_FragData[2] = vec4(LinearDepth(depth));
     if(
         // true ||
          depth == 1.0){
@@ -241,15 +289,24 @@ void main(){
     float NdotL = sunAngle > 0.5 ?
         max(dot(normal, normalize(moonPosition)), 0.0) :
         max(dot(normal, normalize(sunPosition)), 0.0);
+
     // Do the lighting calculations
-    vec3 light = vec3(1.0);
     #ifdef customLighting
-        light = getLight(Lightmap, NdotL, depth);
+        vec3 light = getLight(Lightmap, NdotL, depth);
+        /*---- 2. calculate color underwater ----*/
+        #ifdef waterColor
+        if(floor(blockId + 0.5) == 9){
+            // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
+            float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+            color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), light.b);
+        }
+        #endif
         vec3 Diffuse = color * light;
     #else
         vec3 Diffuse = color;
     #endif
-    /* DRAWBUFFERS:03 */
+    /* DRAWBUFFERS:013 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0);
+    gl_FragData[1] = vec4(ref.x, ref.y, waterAlpha, 1.0);
 }
