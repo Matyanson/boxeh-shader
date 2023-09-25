@@ -8,7 +8,7 @@ flat varying int BlockId;
 
 uniform sampler2D texture;
 uniform sampler2D lightmap;
-uniform sampler2D colortex7;
+uniform sampler2D colortex8;
 uniform float frameTimeCounter;
 
 #define waterSurfaceWaves
@@ -56,7 +56,7 @@ void main() {
 
     #ifdef waterSurfaceWaves
         float offset = frameTimeCounter * 0.0035 ;
-        vec3 waveNormalColor = texture2D(colortex7, (TexCoords + offset) * 64).rgb;
+        vec3 waveNormalColor = texture2D(colortex8, (TexCoords + offset) * 64).rgb;
         vec3 waveNormal = waveNormalColor * 2.0 - 1.0;
         
         mat3 TBN = getTBNMatrix(Normal);

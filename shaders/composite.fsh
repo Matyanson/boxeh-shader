@@ -200,7 +200,8 @@ void main(){
 
     /*---- 0. declare variables ----*/
     float blockId = texture2D(colortex6, TexCoords).r;
-    vec3 normal = normalize(texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0);
+    bool isWater = floor(blockId + 0.5) == 9;
+    vec3 normal = texture2D(colortex2, TexCoords).rgb * 2.0 - 1.0;
     float depth = texture2D(depthtex0, TexCoords).r;
     float depthDeep = texture2D(depthtex2, TexCoords).r;
     vec3 fragPos = vec3(TexCoords, depth);
@@ -249,7 +250,7 @@ void main(){
     vec3 ref = vec3(1.0);
     #ifdef waterReflection
     if(floor(blockId + 0.5) == 9){
-        vec3 originalNormal = normalize(texture2D(colortex5, TexCoords).rgb * 2.0 - 1.0);
+        vec3 originalNormal = texture2D(colortex5, TexCoords).rgb * 2.0 - 1.0;
 
         // fix: don't reflect under horizon
         if(
