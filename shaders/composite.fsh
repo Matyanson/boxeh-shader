@@ -130,7 +130,7 @@ float AdjustLightmapTorch(in float torch) {
         default:    fx = 1 - x
         mine:       e(fx), ex = 1/(x^2), normalize => ((1+k) / (k + x^2) - 1) * k
     */
-    const float k = 0.1;
+    const float k = 0.01;
     float percentage = (1.0 + k) / (k + pow(1 - torch, 2.0)) - 1;
     return percentage * k;
 }
@@ -151,8 +151,8 @@ vec2 AdjustLightmap(in vec2 Lightmap){
 }
 
 vec3 GetLightmapColor(in vec2 Lightmap, float torchIntensity, float skyIntensity){
-    // Transform Lightmap into the [0, 1] range
-    Lightmap = (Lightmap * 33.05 / 32.0) - (1.05f / 32.0);
+    // Transform Lightmap into the [0, 1] range; fix: previous - Lightmap = (Lightmap * 33.05 / 32.0) - (1.05f / 32.0);
+    Lightmap = (Lightmap * 37f / 32.0) - (1.05f / 32.0);
     // Adjust the lightmap
     Lightmap = AdjustLightmap(Lightmap);
 
@@ -188,7 +188,7 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
     vec3 light = sunAngle < 0.5 ?
         NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, sunIntensity * 0.3) :
         moonIntensity * NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, moonIntensity * 0.3);
-    
+
     //return RayColor;
     return scaleMaxTreshold(light, 1.15);
 }
@@ -297,7 +297,6 @@ void main(){
         /*---- 2. calculate color underwater ----*/
         #ifdef waterColor
         if(floor(blockId + 0.5) == 9){
-            // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
             float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
             color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), light.b);
         }
