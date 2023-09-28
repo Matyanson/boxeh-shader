@@ -56,6 +56,7 @@ const int noiseTextureResolution = 128;
 
 const float Ambient = 0.025;
 
+#define ambientLight 0.0005 // [0 0.0005 0.001 0.002 0.003 0.004 0.005]
 #define waterColor
 #define waterRefraction
 #define waterReflection
@@ -189,6 +190,8 @@ vec3 getLight(vec2 Lightmap, float NdotL, float depth) {
         NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, sunIntensity * 0.3) :
         moonIntensity * NdotL * RayColor + GetLightmapColor(Lightmap, 0.7, moonIntensity * 0.3);
 
+    light += ambientLight;
+    
     //return RayColor;
     return scaleMaxTreshold(light, 1.15);
 }
