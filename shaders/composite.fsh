@@ -244,7 +244,7 @@ void main(){
             depthDeep = texture2D(depthtex2, refracted.xy).r;
         } else {
             float isEntity = texture2D(colortex7, refracted.xy).r;
-            if(isEntity < 0.1)
+            if(isEntity < 0.0001)
                 color = texture2D(colortex3, refracted.xy).rgb;
         }
     }
