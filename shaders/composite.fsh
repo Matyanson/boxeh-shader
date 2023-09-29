@@ -281,9 +281,7 @@ void main(){
 
     // ignore sky
     gl_FragData[2] = vec4(LinearDepth(depth));
-    if(
-        // true ||
-         depth == 1.0){
+    if(depth == 1.0){
         gl_FragData[0] = vec4(color, 1.0);
         return;
     }
