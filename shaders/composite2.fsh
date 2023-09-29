@@ -1,5 +1,7 @@
 #version 120
 
+#include "/lib/settings.glsl"
+
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
 
@@ -10,8 +12,6 @@ uniform float sunAngle;
 uniform float near, far;
 uniform mat4 gbufferProjection;
 
-#define NUM_SAMPLES 100
-#define godRay
 
 float luminance(vec3 color) {
     return dot(color, vec3(0.2125, 0.7153, 0.0721));

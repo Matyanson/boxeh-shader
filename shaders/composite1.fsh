@@ -1,8 +1,8 @@
 #version 120
+
+#include "/lib/settings.glsl"
 #include "algorithms.glsl"
 
-#define FOG_DENSITY 0.003//0.008
-#define RAIN_MODIFIER 0.012;
 
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
@@ -28,8 +28,6 @@ float FogExp2(float viewDistance, float density) {
 const float contrast = 1.25;
 const float brightness = 0.25;
 
-#define waterColor
-#define atmosphericFog
 
 void main() {
     vec3 color = texture2D(colortex0, TexCoords).rgb;

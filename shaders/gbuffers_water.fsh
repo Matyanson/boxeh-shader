@@ -1,5 +1,7 @@
 #version 120
 
+#include "/lib/settings.glsl"
+
 varying vec2 TexCoords;
 varying vec4 Tint;
 varying vec2 LightmapCoords;
@@ -11,10 +13,6 @@ uniform sampler2D lightmap;
 uniform sampler2D colortex8;
 uniform float frameTimeCounter;
 
-#define waterSurfaceWaves
-#define waterColor
-#define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-#define customLighting
 
 
 mat3 getTBNMatrix(vec3 normal) {

@@ -1,9 +1,9 @@
 #version 120
+
+#include "/lib/settings.glsl"
 #include "distort.glsl"
 #include "algorithms.glsl"
 #include "vec_component_operations.glsl"
-
-#define SHADOW_SAMPLES 1
 
 varying vec2 TexCoords;
 
@@ -53,15 +53,6 @@ const int TotalSamples = ShadowSamplesPerSize * ShadowSamplesPerSize;
 const float sunPathRotation = 37.7;
 const int shadowMapResolution = 2048;
 const int noiseTextureResolution = 128;
-
-const float Ambient = 0.025;
-
-#define ambientLight 0.0005 // [0 0.0005 0.001 0.002 0.003 0.004 0.005]
-#define waterColor
-#define waterRefraction
-#define waterReflection
-#define customLighting
-#define shadows
 
 vec3 viewToScreen(vec3 viewPos) {
   vec3 data = mat3(gbufferProjection) * viewPos;
@@ -304,6 +295,13 @@ void main(){
         #endif
         vec3 Diffuse = color * light;
     #else
+        /*---- 2. calculate color underwater ----*/
+        #ifdef waterColor
+        if(floor(blockId + 0.5) == 9){
+            float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+            color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), 0.0);
+        }
+        #endif
         vec3 Diffuse = color;
     #endif
     /* DRAWBUFFERS:013 */

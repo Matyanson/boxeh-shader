@@ -1,6 +1,6 @@
 #version 120
 
-#define customLighting
+#include "/lib/settings.glsl"
 
 varying vec2 TexCoords;
 varying vec4 Tint;

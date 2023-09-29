@@ -1,5 +1,7 @@
 #version 120
 
+#include "/lib/settings.glsl"
+
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
 uniform sampler2D colortex3;
@@ -7,7 +9,6 @@ uniform sampler2D depthtex2;
 uniform float viewWidth, viewHeight;
 uniform float near, far;
 
-#define DOF
 
 #ifdef DOF
     vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);

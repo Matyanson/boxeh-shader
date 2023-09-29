@@ -1,4 +1,6 @@
 #version 120
+
+#include "/lib/settings.glsl"
 #include "algorithms.glsl"
 
 varying vec2 TexCoords;
@@ -20,10 +22,6 @@ uniform mat4 gbufferProjection;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-
-#define waterColor
-#define waterReflection
-#define waterRefraction
 
 float toMeters(float depth) {
    return near + depth * (far - near);
