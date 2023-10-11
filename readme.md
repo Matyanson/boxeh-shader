@@ -32,52 +32,52 @@ Each effect can be turned on/off. For instance,this shader can be used to enhanc
  | Vanilla  | Boxeh |
  | ------------- | ------------- |
  | ![](images/lighting_vanilla.png) | ![](images/lighting_boxeh.png) |
- | ![Cave lighting vanilla](torch_in_cave_vanilla.png) | ![Cave lighting Boxeh](torch_in_cave_boxeh.png) |
+ | ![Cave lighting vanilla](images/torch_in_cave_vanilla.png) | ![Cave lighting Boxeh](images/torch_in_cave_boxeh.png) |
 
 ### Shadows
 
-![Shadows](shadows_boxeh.png)
+![Shadows](images/shadows_boxeh.png)
 
 ### Atmospheric Fog
 
-![Atmospheric Fog](atmospheric_fog_boxeh.png)
+![Atmospheric Fog](images/atmospheric_fog_boxeh.png)
 
 ### Reflection
 
-![Reflection](reflection.png)
+![Reflection](images/reflection.png)
 
 ### Water texture opacity
 
-![Water texture opacity](water_texture_opacity.png)
+![Water texture opacity](images/water_texture_opacity.png)
 
 ### Water Light Absorption (color)
 
-![Water light absorption](water_color.png)
+![Water light absorption](images/water_color.png)
 
 ### Water Light Refraction
 
 
-![Refraction](water_refraction.png)
-![Refraction gif](water_refraction.gif)
+![Refraction](images/water_refraction.png)
+![Refraction gif](images/water_refraction.gif)
 This effect is NOT faked. That is why you can see an artifact near the bottom edge of the screen. The shader can't draw what is not visible.
 
 ### Water surface waves
 
-![Water waves](water_waves.png)
+![Water waves](images/water_waves.png)
 
 ### Godrays (Sun lightrays)
 
-![Godrays](godrays_above_water.png)
+![Godrays](images/godrays_above_water.png)
 
 ### Depth Of Field Blur
 
-![DOF](dof_on_water.png)
+![DOF](images/dof_on_water.png)
 
 
 ## Album
-![Godray sunset](dof_godray_sunset_2.png)
-![Godray sunset](dof_godray_sunset.png)
-![Moon reflection](moon_reflection.png)
-![Pufferfish in water](pufferfish_in_water.png)
-![Lamas](lamas_in_water.png)
-![Godray trough tree branches](example.png)
+![Godray sunset](images/dof_godray_sunset_2.png)
+![Godray sunset](images/dof_godray_sunset.png)
+![Moon reflection](images/moon_reflection.png)
+![Pufferfish in water](images/pufferfish_in_water.png)
+![Lamas](images/lamas_in_water.png)
+![Godray trough tree branches](images/example.png)
