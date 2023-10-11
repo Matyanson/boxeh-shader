@@ -54,16 +54,15 @@ Each effect can be turned on/off. For instance,this shader can be used to enhanc
 
 ![Water light absorption](images/water_color.png)
 
-### Water Light Refraction
+### Water surface waves
 
+![Water waves](images/water_waves.png)
+
+### Water Light Refraction
 
 ![Refraction](images/water_refraction.png)
 ![Refraction gif](images/water_refraction.gif)
 This effect is NOT faked. That is why you can see an artifact near the bottom edge of the screen. The shader can't draw what is not visible.
-
-### Water surface waves
-
-![Water waves](images/water_waves.png)
 
 ### Godrays (Sun lightrays)
 
