@@ -1,9 +1,11 @@
 #version 120
 
 #include "/lib/settings.glsl"
+#include "vec_component_operations.glsl"
 
 varying vec2 TexCoords;
 uniform sampler2D colortex0;
+uniform sampler2D depthtex0;
 
 uniform float viewWidth, viewHeight;
 uniform vec3 sunPosition;
@@ -37,31 +39,38 @@ void main() {
          return;
       }
 
-      float blurStart = 0.05;
+      float blurStart = 0.1;
       float blurWidth = 1;
 
       
       vec2 uv = TexCoords;
       
-      uv -= center;
-      float precompute = blurWidth / float(NUM_SAMPLES - 1);
+      vec2 diffV = uv - center;
+      vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
+      float dist = length(distV);
+      float rayIntensity = max(0.8 - (dist), 0);
+      float sunRadius = 0.06;
+
+      vec2 sampleStep = dist < sunRadius ?
+      diffV / NUM_SAMPLES :
+      normalize(distV) * (sunRadius * vec2(viewHeight / viewWidth, 1)) / NUM_SAMPLES;
+      vec2 sampleCoords = center + sampleStep;
+      float isSun = 0;
       
-      vec3 rayColor = vec3(0.0);
-      // float dist = sqrt(pow(TexCoords.x - center.x, 2) + pow(TexCoords.y - center.y, 2));
-      for(int i = 0; i < NUM_SAMPLES; i++)
-      {
-         float scale = blurStart + (float(i) * precompute);
-         vec2 coords = uv * scale  + center;
-         vec3 samCol = texture2D(colortex0, coords).rgb;
-         float lum = pow(max(luminance(samCol) - 0.6, 0), LUM_POW);
-         rayColor += samCol * lum;// * (1-(dist));
+      for(int i = 0; i < NUM_SAMPLES; i++) {
+         float sampleDepth = texture2D(depthtex0, sampleCoords).r;
+         // test if pixel is sun
+         if(sampleDepth == 1.0)
+            isSun++;
+         sampleCoords += sampleStep;
       }
 
-      rayColor /= float(NUM_SAMPLES);
+      float filtr = isSun / NUM_SAMPLES;
+      color += filtr * rayIntensity*rayIntensity;
 
-      rayColor = vec3(pow(rayColor.r, 1.2), pow(rayColor.g, 1.2), pow(rayColor.b, 1.2));
-      rayColor *= FILTER;
-      color += rayColor;
+      // visualize sun radius
+      // if(dist > sunRadius && dist < sunRadius + 0.001)
+      //    color *= 0.1;
    #endif
 
    /* DRAWBUFFERS:0 */
