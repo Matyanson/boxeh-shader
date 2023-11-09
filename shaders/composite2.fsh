@@ -21,7 +21,10 @@ float luminance(vec3 color) {
 
 void main() {
       vec3 color = texture2D(colortex0, TexCoords).rgb;
-   #ifdef godRay
+   #if godRay == 0
+      gl_FragColor = vec4(color, 1.0);
+      return;
+   #endif
       vec3 skyObjectPos = sunPosition;
       float FILTER = 0.015;
       float LUM_POW = 2;
@@ -44,7 +47,7 @@ void main() {
 
       
       vec2 uv = TexCoords;
-      
+   #if godRay == 1
       vec2 diffV = uv - center;
       vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
       float dist = length(distV);
@@ -54,7 +57,7 @@ void main() {
       vec2 sampleStep = dist < sunRadius ?
       diffV / NUM_SAMPLES :
       normalize(distV) * (sunRadius * vec2(viewHeight / viewWidth, 1)) / NUM_SAMPLES;
-      vec2 sampleCoords = center + sampleStep;
+      vec2 sampleCoords = center;
       float isSun = 0;
       
       for(int i = 0; i < NUM_SAMPLES; i++) {
@@ -68,9 +71,54 @@ void main() {
       float filtr = isSun / NUM_SAMPLES;
       color += filtr * rayIntensity*rayIntensity;
 
-      // visualize sun radius
+   #elif godRay == 2
+      vec2 diffV = uv - center;
+      vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
+      float dist = length(distV);
+      float rayIntensity = max(0.8 - (dist), 0);
+      float sunRadius = 0.06;
+
+      vec2 sampleStep = dist < sunRadius ?
+      diffV / NUM_SAMPLES :
+      normalize(distV) * (sunRadius * vec2(viewHeight / viewWidth, 1)) / NUM_SAMPLES;
+      vec2 sampleCoords = center;
+      vec3 rayColor = vec3(0);
+      
+      for(int i = 0; i < NUM_SAMPLES; i++) {
+         float sampleDepth = texture2D(depthtex0, sampleCoords).r;
+         vec3 sampleColor = texture2D(colortex0, sampleCoords).rgb;
+         // test if pixel is sun
+         if(sampleDepth == 1.0 &&
+            sampleColor.r + sampleColor.g + sampleColor.b > 2.5)
+            rayColor += sampleColor;
+         sampleCoords += sampleStep;
+      }
+
+      rayColor /= NUM_SAMPLES;
+      color += scaleMaxTreshold(rayColor, 1.0) * rayIntensity*rayIntensity;
+
+      //visualize sun radius
       // if(dist > sunRadius && dist < sunRadius + 0.001)
       //    color *= 0.1;
+   #elif godRay == 3
+      uv -= center;
+      float precompute = blurWidth / float(NUM_SAMPLES - 1);
+
+      vec3 rayColor = vec3(0.0);
+      for(int i = 0; i < NUM_SAMPLES; i++)
+      {
+         float scale = blurStart + (float(i) * precompute);
+         vec2 coords = uv * scale  + center;
+         vec3 samCol = texture2D(colortex0, coords).rgb;
+         float lum = pow(max(luminance(samCol) - 0.6, 0), LUM_POW);
+         rayColor += samCol * lum;
+      }
+
+      rayColor /= float(NUM_SAMPLES);
+
+      rayColor = vec3(pow(rayColor.r, 1.2), pow(rayColor.g, 1.2), pow(rayColor.b, 1.2));
+      rayColor *= FILTER;
+      color += rayColor;
    #endif
 
    /* DRAWBUFFERS:0 */

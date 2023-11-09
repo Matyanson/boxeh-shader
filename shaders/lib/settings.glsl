@@ -16,11 +16,11 @@
     #define waterSurfaceWaves
     #define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #else
-    #define defaultWaterOpacity 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+    #define defaultWaterOpacity 1.0
 #endif
 
-#define godRay
-#define NUM_SAMPLES 10
+#define godRay 1 //[0 1 2 3]
+#define NUM_SAMPLES 1 //[1 5 10 25 50 100]
 
 #define DOF
 
