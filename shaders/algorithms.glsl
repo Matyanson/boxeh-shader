@@ -17,7 +17,26 @@ vec3 getWaterColor(vec3 originalColor, float viewDistance, float lightIntensity)
    
    
    // vec3 penetratedColor = originalColor * absorbFilter;
-   vec3 scatteredColor = sunColor * scatterIntensity;
+
+   /*
+      S = scatterCoefficient
+      A = absorptionCoefficient
+      a(x) = absorbFilter
+      x = viewDistance
+
+      // integral from 0 to x
+      g = integral(a(x)) / integral(1)
+      g = -((a(x) - 1) / A) / x
+
+      // AbsorbedScatterCoefficient = gS
+      = -(((a(x) - 1) / A) / x) * S
+      // scatteredColor = 1 - e^-gSx
+      -gSx = --(((a(x) - 1) / A) / x)Sx
+      -gSx =   ((a(x) - 1) * S) / A
+   */
+   vec3 AbsorbedScatterCoefficient = ((absorbFilter - 1) * scatterCoefficient) / absorptionCoefficient;
+
+   vec3 scatteredColor = sunColor * (1-exp(AbsorbedScatterCoefficient));
    
    return (originalColor * attenuationFilter) + scatteredColor;
 }
