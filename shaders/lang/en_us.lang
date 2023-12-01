@@ -2,6 +2,7 @@ option.customLighting=
 option.shadows=
 option.atmosphericFog=
 option.customWater=
+option.WATER_COLOR=custom water color
 option.godRay=
 value.godRay.0=OFF
 value.godRay.1=FAST

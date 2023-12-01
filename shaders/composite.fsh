@@ -19,7 +19,7 @@ uniform int isEyeInWater;
 uniform sampler2D colortex0;    // non-water color
 uniform sampler2D colortex1;    // lightmap, water alpha
 uniform sampler2D colortex2;    // normal
-uniform sampler2D colortex3;    // terrain color
+uniform sampler2D colortex3;    // terrain color -> depth
 uniform sampler2D colortex4;    // water color
 uniform sampler2D colortex5;    // original normal -> dof color blur
 uniform sampler2D colortex6;    // blockId
@@ -287,16 +287,17 @@ void main(){
     #ifdef customLighting
         vec3 light = getLight(Lightmap, NdotL, depth);
         /*---- 2. calculate color underwater ----*/
-        #ifdef waterColor
+        #ifdef WATER_COLOR
         if(floor(blockId + 0.5) == 9){
             float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+            // color = isEyeInWater == 1 ? color : getWaterColorAdaptive(color, toMeters(depthWater), light.b, waterTextureColor, vec3(waterAlpha));
             color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), light.b);
         }
         #endif
         vec3 Diffuse = color * light;
     #else
         /*---- 2. calculate color underwater ----*/
-        #ifdef waterColor
+        #ifdef WATER_COLOR
         if(floor(blockId + 0.5) == 9){
             float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
             color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), 0.0);

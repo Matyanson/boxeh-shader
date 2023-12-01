@@ -65,7 +65,7 @@ void main() {
         vec3 normal = Normal * 0.5 + 0.5;
     #endif
 
-    #ifdef waterColor
+    #ifdef WATER_COLOR
         color = vec4(albedo.rgb, color.a * defaultWaterOpacity);
     #else
         color.a *= defaultWaterOpacity;

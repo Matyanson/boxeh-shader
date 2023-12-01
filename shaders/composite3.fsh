@@ -107,7 +107,7 @@ void main() {
    // #endif
 
    /*---- 2. calculate color underwater ----*/
-   // #ifdef waterColor
+   // #ifdef WATER_COLOR
    //    if(floor(blockId + 0.5) == 9) {
    //       // float lightAlbedo = isEyeInWater == 1 ? 1.0 : texture2D(colortex1, TexCoords).b;
    //       float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);

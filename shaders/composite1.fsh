@@ -33,7 +33,7 @@ void main() {
     vec3 color = texture2D(colortex0, TexCoords).rgb;
     float depth = texture2D(colortex3, TexCoords).r;
 
-    #ifdef waterColor
+    #ifdef WATER_COLOR
     
         if(isEyeInWater == 1) {
             float LightIntensity = texture2D(colortex1, TexCoords).b;
@@ -45,7 +45,7 @@ void main() {
 
     #ifdef atmosphericFog
         if(
-        // true || 
+        isEyeInWater == 1 ||
         depth == 1.0) {
             gl_FragData[0] = vec4(color, 1.0);
             return;
