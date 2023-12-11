@@ -10,7 +10,7 @@
 
 #define customWater
 #ifdef customWater
-    #define WATER_COLOR
+    #define WATER_COLOR 1 // [0 1 2]
     #define waterRefraction
     #define waterReflection
     #define waterSurfaceWaves

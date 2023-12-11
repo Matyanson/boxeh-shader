@@ -265,6 +265,7 @@ void main(){
     }
     #endif
 
+    vec3 terrainColor = pow(color, vec3(2.2));
     // combine base and water texture
     color = mix(waterTextureColor, color, waterAlpha);
     // Account for gamma correction
@@ -286,27 +287,24 @@ void main(){
     // Do the lighting calculations
     #ifdef customLighting
         vec3 light = getLight(Lightmap, NdotL, depth);
-        /*---- 2. calculate color underwater ----*/
-        #ifdef WATER_COLOR
-        if(floor(blockId + 0.5) == 9){
-            float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-            // color = isEyeInWater == 1 ? color : getWaterColorAdaptive(color, toMeters(depthWater), light.b, waterTextureColor, vec3(waterAlpha));
-            color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), light.b);
-        }
-        #endif
-        vec3 Diffuse = color * light;
     #else
-        /*---- 2. calculate color underwater ----*/
-        #ifdef WATER_COLOR
-        if(floor(blockId + 0.5) == 9){
-            float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
-            color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), 0.0);
-        }
-        #endif
-        vec3 Diffuse = color;
+        vec3 light = 1.0;
     #endif
+    /*---- 2. calculate color underwater ----*/
+    #if WATER_COLOR != 0
+    if(floor(blockId + 0.5) == 9) {
+        float depthWater = LinearDepth(depthDeep) - LinearDepth(depth);
+        #if WATER_COLOR == 1
+            color = isEyeInWater == 1 ? color : getWaterColor(color, toMeters(depthWater), light.b);
+        #elif WATER_COLOR == 2
+            color = isEyeInWater == 1 ? color : getWaterColorAdaptive(terrainColor, toMeters(depthWater), light.b, waterTextureColor, vec3(waterAlpha));
+        #endif
+    }
+    #endif
+    /*---- 3. add everything together ----*/
+    vec3 Diffuse = color * light;
+
     /* DRAWBUFFERS:013 */
-    // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0);
     gl_FragData[1] = vec4(ref.x, ref.y, waterAlpha, 1.0);
 }
