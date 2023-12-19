@@ -20,6 +20,8 @@
 #endif
 
 #define godRay 1 //[0 1 2]
+#define RAY_RADIUS 0.8 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define RAY_INTENSITY 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define SAMPLE_COLOR
 #define DEBUG_SUN_RADIUS 0 //[0 1]
 #define NUM_SAMPLES 1 //[1 5 10 25 50 100]

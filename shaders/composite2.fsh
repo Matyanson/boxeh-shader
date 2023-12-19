@@ -48,10 +48,14 @@ void main() {
    vec2 uv = TexCoords;
 
    #if godRay == 1
+      if(sunAngle > 0.5){
+         gl_FragColor = vec4(color, 1.0);
+         return;
+      }
       vec2 diffV = uv - center;
       vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
       float dist = length(distV);
-      float rayIntensity = max(0.8 - (dist), 0);
+      float rayIntensity = RAY_INTENSITY * max(1/RAY_RADIUS*(RAY_RADIUS - dist), 0);
       float sunRadius = 0.06;
 
       vec2 sampleStep = dist < sunRadius ?
