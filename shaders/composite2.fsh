@@ -79,7 +79,7 @@ void main() {
       rayColor /= NUM_SAMPLES;
       color += scaleMaxTreshold(rayColor, 1.0) * rayIntensity*rayIntensity;
 
-      #ifdef DEBUG_SUN_RADIUS
+      #if DEBUG_SUN_RADIUS == 1
          //visualize sun radius
          if(dist > sunRadius && dist < sunRadius + 0.001)
             color *= 0.1;
