@@ -34,10 +34,10 @@ vec3 getWaterColor(vec3 originalColor, float viewDistance, float lightIntensity,
 }
 
 vec2 adjustCoefs(float scatterCoef, float absorptionCoef, float desiredWaterI, float originalWhite) {
-   float dist = 5;
+   float dist = 24;
    float color = 1;
 
-   float desiredWhite = 0.3*color + 0.7 * desiredWaterI;
+   float desiredWhite = desiredWaterI; // 0.3*color + 0.7 * desiredWaterI;
    float desiredBlack = 0.0*color + 0.7 * desiredWaterI;
    desiredWhite = pow(desiredWhite, 2.2);
    desiredBlack = pow(desiredBlack, 2.2);
@@ -60,13 +60,21 @@ vec2 adjustCoefs(float scatterCoef, float absorptionCoef, float desiredWaterI, f
 
 vec3 getWaterColorAdaptive(vec3 originalColor, float viewDistance, float lightIntensity, vec3 waterColor, vec3 waterOpacity) {
    /*
-      w-texture-white:
-      0.502, 0.651, 0.929
+      color (white bg):
+      w-texture: 0.502, 0.651, 0.929
+      water(5): 0.057211520130039606, 0.7452764914432886, 0.9445940693665233
+      water(5, c=0.5): 3.0646962766458474e-7, 0.11496274259336194, 0.3760071271596913
+      water(25): 6.129392553291695e-7, 0.22992548518672387, 0.7520142543193826
+      water(24): 0.0000010862273631843187, 0.24385048692652467, 0.7606362689256634
+
+      absorption:
+      default texture blue(5): 0.3032282700877795, 0.18886808018036982, 0.032404477674051343
+      water: 0.5722, 0.0588, 0.0114
    */
-   vec3 originalWaterColor = vec3(0.502, 0.651, 0.929);
+   vec3 originalWaterColor = vec3(0.0000010862273631843187, 0.24385048692652467, 0.7606362689256634);
    originalWaterColor = pow(originalWaterColor, vec3(2.2));
 
-   vec3 absorptionCoefficient = vec3(0.3032282700877795, 0.18886808018036982, 0.032404477674051343);
+   vec3 absorptionCoefficient = vec3(0.5722, 0.0588, 0.0114);
    vec3 scatterCoefficient = vec3(0); //vec3(0.0007, 0.0019, 0.0045);
    
    mat3x2 newASCoefs;
