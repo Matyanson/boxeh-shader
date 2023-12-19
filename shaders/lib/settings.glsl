@@ -19,7 +19,9 @@
     #define defaultWaterOpacity 1.0
 #endif
 
-#define godRay 1 //[0 1 2 3]
+#define godRay 1 //[0 1 2]
+#define SAMPLE_COLOR
+#define DEBUG_SUN_RADIUS 0 //[0 1]
 #define NUM_SAMPLES 1 //[1 5 10 25 50 100]
 
 #define DOF

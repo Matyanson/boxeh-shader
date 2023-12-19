@@ -25,53 +25,29 @@ void main() {
       gl_FragColor = vec4(color, 1.0);
       return;
    #endif
-      vec3 skyObjectPos = sunPosition;
-      float FILTER = 0.015;
-      float LUM_POW = 2;
 
-      if(sunAngle > 0.5){
-         skyObjectPos = moonPosition;
-         FILTER = 0.15;
-         LUM_POW = 1;
-      }
-      vec4 tpos = vec4(skyObjectPos, 1.0) * gbufferProjection;
-      tpos = tpos / tpos.w;
-      vec2 center = tpos.xy / tpos.z * 0.5 + 0.5;
-      if(skyObjectPos.z > 0) {
-         gl_FragColor = vec4(color, 1.0);
-         return;
-      }
+   vec3 skyObjectPos = sunPosition;
+   float FILTER = 0.015;
+   float LUM_POW = 2;
 
-      float blurStart = 0.1;
-      float blurWidth = 1;
+   if(sunAngle > 0.5){
+      skyObjectPos = moonPosition;
+      FILTER = 0.15;
+      LUM_POW = 1;
+   }
+   vec4 tpos = vec4(skyObjectPos, 1.0) * gbufferProjection;
+   tpos = tpos / tpos.w;
+   vec2 center = tpos.xy / tpos.z * 0.5 + 0.5;
+   if(skyObjectPos.z > 0) {
+      gl_FragColor = vec4(color, 1.0);
+      return;
+   }
 
-      
-      vec2 uv = TexCoords;
+   float blurStart = 0.1;
+   float blurWidth = 1;
+   vec2 uv = TexCoords;
+
    #if godRay == 1
-      vec2 diffV = uv - center;
-      vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
-      float dist = length(distV);
-      float rayIntensity = max(0.8 - (dist), 0);
-      float sunRadius = 0.06;
-
-      vec2 sampleStep = dist < sunRadius ?
-      diffV / NUM_SAMPLES :
-      normalize(distV) * (sunRadius * vec2(viewHeight / viewWidth, 1)) / NUM_SAMPLES;
-      vec2 sampleCoords = center;
-      float isSun = 0;
-      
-      for(int i = 0; i < NUM_SAMPLES; i++) {
-         float sampleDepth = texture2D(depthtex0, sampleCoords).r;
-         // test if pixel is sun
-         if(sampleDepth == 1.0)
-            isSun++;
-         sampleCoords += sampleStep;
-      }
-
-      float filtr = isSun / NUM_SAMPLES;
-      color += filtr * rayIntensity*rayIntensity;
-
-   #elif godRay == 2
       vec2 diffV = uv - center;
       vec2 distV = diffV * vec2(viewWidth / viewHeight, 1);
       float dist = length(distV);
@@ -86,21 +62,29 @@ void main() {
       
       for(int i = 0; i < NUM_SAMPLES; i++) {
          float sampleDepth = texture2D(depthtex0, sampleCoords).r;
-         vec3 sampleColor = texture2D(colortex0, sampleCoords).rgb;
          // test if pixel is sun
-         if(sampleDepth == 1.0 &&
-            sampleColor.r + sampleColor.g + sampleColor.b > 2.5)
-            rayColor += sampleColor;
+         #ifdef SAMPLE_COLOR
+            vec3 sampleColor = texture2D(colortex0, sampleCoords).rgb;
+            if(sampleDepth == 1.0 &&
+               sampleColor.r + sampleColor.g + sampleColor.b > 2.5)
+               rayColor += sampleColor;
+         #else
+            if(sampleDepth == 1.0)
+               rayColor += vec3(1.0);
+         #endif
+
          sampleCoords += sampleStep;
       }
 
       rayColor /= NUM_SAMPLES;
       color += scaleMaxTreshold(rayColor, 1.0) * rayIntensity*rayIntensity;
 
-      //visualize sun radius
-      // if(dist > sunRadius && dist < sunRadius + 0.001)
-      //    color *= 0.1;
-   #elif godRay == 3
+      #ifdef DEBUG_SUN_RADIUS
+         //visualize sun radius
+         if(dist > sunRadius && dist < sunRadius + 0.001)
+            color *= 0.1;
+      #endif
+   #elif godRay == 2
       uv -= center;
       float precompute = blurWidth / float(NUM_SAMPLES - 1);
 
