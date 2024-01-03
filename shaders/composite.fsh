@@ -288,7 +288,7 @@ void main(){
     #ifdef customLighting
         vec3 light = getLight(Lightmap, NdotL, depth);
     #else
-        vec3 light = 1.0;
+        vec3 light = vec3(1.0);
     #endif
     /*---- 2. calculate color underwater ----*/
     #if WATER_COLOR != 0
