@@ -26,16 +26,20 @@ uniform sampler2D colortex6;    // blockId
 uniform sampler2D colortex7;    // isEntity
 uniform sampler2D depthtex0;    // depth
 uniform sampler2D depthtex2;
+#ifdef shadows
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
 uniform sampler2D noisetex;
+#endif
 
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
+#ifdef shadows
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+#endif
 
 /*
 const int colortex0Format = RGB16F;
@@ -48,11 +52,13 @@ const int colortex6Format = R16F;
 const int colortex7Format = R16F;
 */
 
+const float sunPathRotation = 37.7;
+#ifdef shadows
 const int ShadowSamplesPerSize = 2 * SHADOW_SAMPLES + 1;
 const int TotalSamples = ShadowSamplesPerSize * ShadowSamplesPerSize;
-const float sunPathRotation = 37.7;
 const int shadowMapResolution = 2048;
 const int noiseTextureResolution = 128;
+#endif
 
 vec3 viewToScreen(vec3 viewPos) {
   vec3 data = mat3(gbufferProjection) * viewPos;
@@ -67,6 +73,7 @@ vec3 toView(vec3 pos) {
    return result.xyz;
 }
 
+#ifdef shadows
 float Visibility(in sampler2D ShadowMap, in vec3 SampleCoords) {
     return step(SampleCoords.z - 0.0004, texture2D(ShadowMap, SampleCoords.xy).r);
 }
@@ -108,6 +115,7 @@ vec3 getShadow(float depth){
     ShadowAccum /= TotalSamples;
     return ShadowAccum;
 }
+#endif
 
 float toMeters(float depth) {
    return near + depth * (far - near);
